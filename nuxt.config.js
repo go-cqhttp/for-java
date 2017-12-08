@@ -1,4 +1,5 @@
 module.exports = {
+  srcDir: 'src/',
   head: {
     title: `zhuweiyou`,
     meta: [
