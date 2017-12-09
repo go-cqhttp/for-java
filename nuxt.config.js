@@ -5,7 +5,6 @@ module.exports = {
     meta: [
       {charset: 'utf-8'},
       {'http-equiv': 'x-ua-compatible', content: 'ie=edge'},
-      {name: 'keywords', content: 'Web Developer'},
       {name: 'description', content: 'Web Developer'},
       {name: 'renderer', content: 'webkit'},
       {name: 'apple-mobile-web-app-capable', content: 'yes'},
