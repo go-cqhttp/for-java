@@ -5,13 +5,28 @@
   "author": "zhuweiyou <i@zhuweiyou.com> (https://zhuweiyou.com/)",
   "scripts": {
     "dev": "nuxt",
-    "prod": "nuxt generate"
+    "build": "nuxt generate",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore ."
   },
+  "pre-commit": [
+    "lint"
+  ],
   "dependencies": {
     "nuxt": "^1.0.0-rc11"
   },
   "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.3.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-loader": "^1.9.0",
+    "eslint-plugin-html": "^3.1.1",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-node": "^5.1.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
     "less": "^2.7.3",
-    "less-loader": "^4.0.5"
+    "less-loader": "^4.0.5",
+    "offline-plugin": "^4.8.5",
+    "pre-commit": "^1.2.2"
   }
 }

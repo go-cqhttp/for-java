@@ -8,7 +8,8 @@ cache:
     - node_modules
 
 script:
-  - npm run prod
+  - npm run lint
+  - npm run build
 
 after_script:
   - cd dist
