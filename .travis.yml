@@ -23,4 +23,3 @@ after_script:
 branches:
   only:
     - /^v[0-9]/
-
