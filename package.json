@@ -1,7 +1,5 @@
 {
   "name": "zhuweiyou.com",
-  "version": "1.0.0",
-  "description": "my website",
   "author": "zhuweiyou <i@zhuweiyou.com> (https://zhuweiyou.com/)",
   "scripts": {
     "dev": "nuxt",
