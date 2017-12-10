@@ -13,8 +13,7 @@ module.exports = function (moduleOptions) {
           'index.ssr.html',
           'vue-ssr-client-manifest.json',
           '**/*.map'
-        ],
-        AppCache: false
+        ]
       }))
     }
   })
