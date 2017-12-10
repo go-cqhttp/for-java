@@ -2,8 +2,9 @@ module.exports = {
   srcDir: 'src/',
   loading: false,
   modules: [
-    '~/modules/eslint',
+    '~/modules/css',
     '~/modules/head',
+    '~/modules/lint',
     '~/modules/pwa'
   ],
   plugins: [

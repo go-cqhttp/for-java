@@ -1,13 +1,13 @@
 <template>
-  <div class="wrap">
-    <div class="body">
+  <div :class="$style.wrap">
+    <div :class="$style.body">
       <h1>Zhu Wei You</h1>
-      <h2 class="desc">Web Developer</h2>
+      <h2 :class="$style.desc">Web Developer</h2>
     </div>
   </div>
 </template>
 
-<style lang="less" scoped>
+<style lang="less" module>
   .wrap {
     height: 100%;
     background: #505050 url(../assets/map.svg) no-repeat center;
