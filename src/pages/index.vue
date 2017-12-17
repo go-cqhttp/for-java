@@ -10,7 +10,7 @@
 <style lang="less" module>
   .wrap {
     height: 100%;
-    background: #505050 url(../assets/img/map.svg) no-repeat center;
+    background: #505050 url(../assets/map.svg) no-repeat center;
     background-size: 200% auto;
     user-select: none;
     display: flex;
