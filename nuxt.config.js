@@ -2,7 +2,6 @@ module.exports = {
   srcDir: 'src/',
   loading: false,
   modules: [
-    '~/modules/css',
     '~/modules/head',
     '~/modules/lint',
     '~/modules/pwa'
