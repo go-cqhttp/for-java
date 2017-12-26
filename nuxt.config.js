@@ -3,11 +3,11 @@ module.exports = {
   loading: false,
   modules: [
     '~/modules/lint',
-    '~/modules/pwa'
+    '~/modules/offline'
   ],
   plugins: [
     {src: '~/plugins/console', ssr: false},
-    {src: '~/plugins/pwa', ssr: false}
+    {src: '~/plugins/offline', ssr: false}
   ],
   build: {
     extractCSS: false,
