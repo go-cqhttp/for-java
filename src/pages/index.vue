@@ -7,7 +7,7 @@
   </div>
 </template>
 
-<style lang="less" scoped>
+<style lang="less">
   .wrap {
     height: 100%;
     background: #505050 url(../assets/map.svg) no-repeat center;
