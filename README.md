@@ -9,3 +9,6 @@
 
 [![Build Status](https://travis-ci.org/zhuweiyou/zhuweiyou.com.svg?branch=master)](https://travis-ci.org/zhuweiyou/zhuweiyou.com)
 
+
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/zhuweiyou/zhuweiyou.com.svg)](https://greenkeeper.io/)
