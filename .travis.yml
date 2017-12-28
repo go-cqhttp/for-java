@@ -22,4 +22,3 @@ after_script:
 branches:
   only:
     - master
-    - /^greenkeeper/.*$/
