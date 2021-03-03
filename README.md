@@ -4,7 +4,12 @@
 
 ### 使用前
 
+- 在 https://github.com/Mrs4s/go-cqhttp/releases 下载对应平台的可执行文件, 放到 go-cqhttp 目录中
+
+- 运行 `go-cqhttp/下载的文件`, 根据提示填写 QQ 号和密码等信息, 参考文档 https://docs.go-cqhttp.org/guide/quick_start.html
+
 * clone并执行mvn clean install
+
 * 创建空的springboot项目并引用依赖
     ```
     <dependency>
