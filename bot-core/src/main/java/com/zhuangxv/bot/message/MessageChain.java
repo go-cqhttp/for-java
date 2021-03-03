@@ -17,8 +17,13 @@ public class MessageChain extends ArrayList<Message> {
         return this.stream().map(Message::toMessageString).collect(Collectors.joining(",", "[", "]"));
     }
 
-    public MessageChain at(String qq) {
-        this.add(new AtMessage(qq));
+    public MessageChain at(long qq) {
+        this.add(new AtMessage(String.valueOf(qq)));
+        return this;
+    }
+
+    public MessageChain atAll() {
+        this.add(new AtMessage("all"));
         return this;
     }
 

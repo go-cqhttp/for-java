@@ -1,5 +1,6 @@
 package com.zhuangxv.bot.core;
 
+import com.zhuangxv.bot.config.BotConfig;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,6 +23,7 @@ import java.net.URISyntaxException;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
+    private final BotConfig botConfig;
     private final BotDispatcher botDispatcher;
 
     private WebSocketClientHandshaker webSocketClientHandshaker;
@@ -33,15 +35,15 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws URISyntaxException {
         HttpHeaders httpHeaders = new DefaultHttpHeaders();
-        httpHeaders.add("Authorization", "Bearer woshixiaoxu");
+        httpHeaders.add("Authorization", "Bearer " + this.botConfig.getAccessToken());
         this.webSocketClientHandshaker = WebSocketClientHandshakerFactory
-                .newHandshaker(new URI("ws://127.0.0.1:6700"), WebSocketVersion.V13, null, false, httpHeaders);;
+                .newHandshaker(new URI(String.format("ws://%s:%d", this.botConfig.getWebsocketUrl(), this.botConfig.getWebsocketPort())), WebSocketVersion.V13, null, false, httpHeaders);;
         this.webSocketClientHandshaker.handshake(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        BotApplication.connection();
+        BotApplication.connection(this.botConfig.getWebsocketUrl(), this.botConfig.getWebsocketPort());
     }
 
     @Override
@@ -52,7 +54,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 this.webSocketClientHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
                 log.info("Go-cqhttp connected!");
             } catch (WebSocketHandshakeException e) {
-                log.info("Go-cqhttp failed to connect!");
+                log.error("Go-cqhttp failed to connect, Token authentication failed!");
+                BotApplication.getApplicationContext().close();
+                Runtime.getRuntime().exit(0);
             }
             return;
         }

@@ -14,12 +14,14 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.NestedExceptionUtils;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +38,7 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
     private static final Bootstrap clientBootstrap = new Bootstrap();
     private static Channel channel;
 
-    private static ApplicationContext applicationContext;
+    private static ConfigurableApplicationContext applicationContext;
     private static Map<String, List<HandlerMethod>> handlerMethodMap;
     private static Map<Class<?>, ObjectInjector<?>> objectInjectorMap;
     private static final Map<String, ResultCondition> resultConditionMap = new ConcurrentHashMap<>();
@@ -44,13 +46,13 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        if (BotApplication.applicationContext == null) {
-            BotApplication.applicationContext = applicationContext;
+        if (BotApplication.applicationContext == null && applicationContext instanceof ConfigurableApplicationContext) {
+            BotApplication.applicationContext = (ConfigurableApplicationContext) applicationContext;
         }
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         log.info("clear ApplicationContext:" + applicationContext);
         applicationContext = null;
     }
@@ -66,17 +68,17 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
         return channel;
     }
 
-    public static void connection() {
+    public static void connection(String host, int port) {
         if (channel != null && channel.isActive()) {
             return;
         }
-        ChannelFuture channelFuture = clientBootstrap.connect("127.0.0.1", 6700);
+        ChannelFuture channelFuture = clientBootstrap.connect(host, port);
         channelFuture.addListener((ChannelFutureListener) futureListener -> {
             if (futureListener.isSuccess()) {
                 channel = futureListener.channel();
             } else {
-                log.info("Failed to connect to go-cqhttp, try connect after 10s");
-                futureListener.channel().eventLoop().schedule(BotApplication::connection, 10, TimeUnit.SECONDS);
+                log.error("Failed to connect to go-cqhttp, try connect after 10s");
+                futureListener.channel().eventLoop().schedule(() -> connection(host, port), 10, TimeUnit.SECONDS);
             }
         });
     }
@@ -199,7 +201,7 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
         return resultCondition;
     }
 
-    public static ApplicationContext getApplicationContext() {
+    public static ConfigurableApplicationContext getApplicationContext() {
         return applicationContext;
     }
 

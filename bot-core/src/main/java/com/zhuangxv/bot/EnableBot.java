@@ -1,6 +1,7 @@
 package com.zhuangxv.bot;
 
 import com.zhuangxv.bot.support.BotApplicationRegistrar;
+import com.zhuangxv.bot.support.BotAutoConfigRegistrar;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
@@ -12,6 +13,6 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(BotApplicationRegistrar.class)
+@Import({BotApplicationRegistrar.class, BotAutoConfigRegistrar.class})
 public @interface EnableBot {
 }
