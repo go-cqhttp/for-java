@@ -2,7 +2,7 @@
 
 > 基于 go-cqhttp 和 java 的 qq 机器人
 
-# 使用前
+### 使用前
 
 * clone并执行mvn clean install
 * 创建空的springboot项目并引用依赖
@@ -15,7 +15,7 @@
     ```
 * 在启动类上加注解@EnableBot
 
-# 配置
+### 配置
 
 >在resources目录下新建application.yml,如果您熟悉spring,可根据自己需求自行编写配置.
 
@@ -26,7 +26,7 @@ bot:
   accessToken: #go-cqhttp配置中的access_token
 ```
 
-# 开始使用
+### 开始使用
 
 * 创建一个类并加入spring管理(可以在类上加@Service注解)
 * 对应方法加上需要解析的类型即可监听对应事件，如下
