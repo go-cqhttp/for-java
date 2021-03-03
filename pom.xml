@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.zhuangxv</groupId>
-    <artifactId>xiaoxu-robot</artifactId>
+    <artifactId>bot</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0</version>
     <modules>
-        <module>xiaoxu-robot-core</module>
+        <module>bot-core</module>
     </modules>
 
     <properties>
