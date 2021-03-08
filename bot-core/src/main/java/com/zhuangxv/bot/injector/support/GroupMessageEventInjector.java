@@ -1,22 +1,21 @@
 package com.zhuangxv.bot.injector.support;
 
-import com.zhuangxv.bot.contact.support.Group;
-import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
-import com.zhuangxv.bot.injector.ObjectInjector;
+import com.zhuangxv.bot.event.message.MessageEvent;
+import com.zhuangxv.bot.injector.MessageObjectInjector;
 import com.zhuangxv.bot.message.MessageChain;
 
-public class GroupMessageEventInjector implements ObjectInjector<GroupMessageEvent> {
+public class GroupMessageEventInjector implements MessageObjectInjector<GroupMessageEvent> {
     @Override
     public Class<GroupMessageEvent> getType() {
         return GroupMessageEvent.class;
     }
 
     @Override
-    public GroupMessageEvent getObject(BaseEvent baseEvent, MessageChain messageChain) {
-        if (!(baseEvent instanceof GroupMessageEvent)) {
+    public GroupMessageEvent getObject(MessageEvent messageEvent, MessageChain messageChain) {
+        if (!(messageEvent instanceof GroupMessageEvent)) {
             return null;
         }
-        return (GroupMessageEvent) baseEvent;
+        return (GroupMessageEvent) messageEvent;
     }
 }

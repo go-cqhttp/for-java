@@ -5,20 +5,18 @@ import com.zhuangxv.bot.annotation.GroupMessageHandler;
 import com.zhuangxv.bot.annotation.TempMessageHandler;
 import com.zhuangxv.bot.api.ApiResult;
 import com.zhuangxv.bot.api.BaseApi;
-import com.zhuangxv.bot.event.BaseEvent;
+import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.exception.BotException;
-import com.zhuangxv.bot.injector.ObjectInjector;
+import com.zhuangxv.bot.injector.MessageObjectInjector;
 import com.zhuangxv.bot.message.MessageChain;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -40,7 +38,7 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
 
     private static ConfigurableApplicationContext applicationContext;
     private static Map<String, List<HandlerMethod>> handlerMethodMap;
-    private static Map<Class<?>, ObjectInjector<?>> objectInjectorMap;
+    private static Map<Class<?>, MessageObjectInjector<?>> objectInjectorMap;
     private static final Map<String, ResultCondition> resultConditionMap = new ConcurrentHashMap<>();
     private static final Map<String, ApiResult> apiResultMap = new ConcurrentHashMap<>();
 
@@ -105,7 +103,7 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
             });
         }
         objectInjectorMap = new HashMap<>();
-        Map<String, ObjectInjector> objectInjectors = getBeansByClass(ObjectInjector.class);
+        Map<String, MessageObjectInjector> objectInjectors = getBeansByClass(MessageObjectInjector.class);
         if (objectInjectors != null) {
             objectInjectors.values().forEach(objectInjector -> objectInjectorMap.put(objectInjector.getType(), objectInjector));
         }
@@ -116,18 +114,18 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
         return handlerMethodMap.get(botName);
     }
 
-    public static List<Object> handleMethod(Set<HandlerMethod> handlerMethodSet, BaseEvent baseEvent, MessageChain messageChain) {
+    public static List<Object> handleMethod(Set<HandlerMethod> handlerMethodSet, MessageEvent messageEvent, MessageChain messageChain) {
         List<Object> resultList = new ArrayList<>();
         for (HandlerMethod handlerMethod : handlerMethodSet) {
             Class<?>[] parameterTypes = handlerMethod.getMethod().getParameterTypes();
             Object[] objects = new Object[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
                 Class<?> parameterType = parameterTypes[i];
-                ObjectInjector<?> objectInjector = objectInjectorMap.get(parameterType);
+                MessageObjectInjector<?> objectInjector = objectInjectorMap.get(parameterType);
                 if (objectInjector == null) {
                     objects[i] = null;
                 } else {
-                    objects[i] = objectInjector.getObject(baseEvent, messageChain);
+                    objects[i] = objectInjector.getObject(messageEvent, messageChain);
                 }
             }
             try {

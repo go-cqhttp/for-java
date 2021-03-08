@@ -1,27 +1,25 @@
 package com.zhuangxv.bot.injector.support;
 
-import com.zhuangxv.bot.contact.support.Group;
 import com.zhuangxv.bot.contact.support.TempFriend;
-import com.zhuangxv.bot.event.BaseEvent;
-import com.zhuangxv.bot.event.message.GroupMessageEvent;
+import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.event.message.PrivateMessageEvent;
-import com.zhuangxv.bot.injector.ObjectInjector;
+import com.zhuangxv.bot.injector.MessageObjectInjector;
 import com.zhuangxv.bot.message.MessageChain;
 
-public class TempFriendInjector implements ObjectInjector<TempFriend> {
+public class TempFriendInjector implements MessageObjectInjector<TempFriend> {
     @Override
     public Class<TempFriend> getType() {
         return TempFriend.class;
     }
 
     @Override
-    public TempFriend getObject(BaseEvent baseEvent, MessageChain messageChain) {
-        if (!(baseEvent instanceof PrivateMessageEvent)) {
+    public TempFriend getObject(MessageEvent messageEvent, MessageChain messageChain) {
+        if (!(messageEvent instanceof PrivateMessageEvent)) {
             return null;
         }
-        if (!("group".equals(((PrivateMessageEvent) baseEvent).getSubType()))) {
+        if (!("group".equals(((PrivateMessageEvent) messageEvent).getSubType()))) {
             return null;
         }
-        return new TempFriend(((PrivateMessageEvent) baseEvent).getUserId());
+        return new TempFriend(messageEvent.getUserId());
     }
 }

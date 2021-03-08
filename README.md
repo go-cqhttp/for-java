@@ -8,9 +8,11 @@
 
 - 运行 `go-cqhttp/下载的文件`, 根据提示填写 QQ 号和密码等信息, 参考文档 https://docs.go-cqhttp.org/guide/quick_start.html
 
-* clone并执行mvn clean install
+- 根据文档将go-cqhttp的上报方式修改为Array
 
-* 创建空的springboot项目并引用依赖
+- clone并执行mvn clean install
+
+- 创建你的springboot项目并引用依赖
     ```
     <dependency>
         <groupId>com.zhuangxv</groupId>
@@ -18,7 +20,7 @@
         <version>1.0.0</version>
     </dependency>
     ```
-* 在启动类上加注解@EnableBot
+- 在启动类上加注解@EnableBot
 
 ### 配置
 
@@ -48,13 +50,14 @@ bot:
         * groupId 只有当临时会话从该参数指定群聊发起时，触发该事件，默认为0即不限制
         * senderId 只有当发言人为该参数指定id时，触发该事件，默认为0即不限制
     * 待补充。
-* 方法支持的参数列表
+* 方法支持的参数列表(你创建的方法中参数列表的类型允许下列中的任意一个,参数名随意,通过类型区分,不需要的可以不加.)
     * Group 如果是群消息，会注入群对应实例，否则注入null
     * GroupMessageEvent 如果是群消息,会注入对应消息事件, 否则注入null
     * String 消息内容
+    * (Integer||int) 消息id
     * MessageChain 消息体
     * Member 如果是群消息，会注入发送人(群成员)对应实例，否则注入null
-    * TempFriend 如果是临时会话,会注入发送人对应实例，否则注入null
+    * Friend 如果是私聊消息或临时会话,会注入发送人对应实例，否则注入null
     * ...文档待补充
 * 方法支持的返回值列表
     * void 什么也不做

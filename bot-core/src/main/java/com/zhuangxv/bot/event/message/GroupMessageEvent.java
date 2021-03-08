@@ -11,22 +11,13 @@ import lombok.ToString;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class GroupMessageEvent extends BaseEvent {
-
-    @JSONField(name = "message_type")
-    private String messageType;
+public class GroupMessageEvent extends MessageEvent {
 
     @JSONField(name = "sub_type")
     private String subType;
 
-    @JSONField(name = "message_id")
-    private Integer messageId;
-
     @JSONField(name = "group_id")
     private Long groupId;
-
-    @JSONField(name = "user_id")
-    private Long userId;
 
     @JSONField(name = "anonymous")
     private JSONObject anonymous;

@@ -1,17 +1,17 @@
 package com.zhuangxv.bot.injector.support;
 
-import com.zhuangxv.bot.event.BaseEvent;
-import com.zhuangxv.bot.injector.ObjectInjector;
+import com.zhuangxv.bot.event.message.MessageEvent;
+import com.zhuangxv.bot.injector.MessageObjectInjector;
 import com.zhuangxv.bot.message.MessageChain;
 
-public class MessageStringInjector implements ObjectInjector<String> {
+public class MessageStringInjector implements MessageObjectInjector<String> {
     @Override
     public Class<String> getType() {
         return String.class;
     }
 
     @Override
-    public String getObject(BaseEvent baseEvent, MessageChain messageChain) {
+    public String getObject(MessageEvent messageEvent, MessageChain messageChain) {
         return messageChain.toString();
     }
 }
