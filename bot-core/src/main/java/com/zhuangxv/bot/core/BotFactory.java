@@ -5,48 +5,52 @@ import com.zhuangxv.bot.annotation.GroupMessageHandler;
 import com.zhuangxv.bot.annotation.TempMessageHandler;
 import com.zhuangxv.bot.api.ApiResult;
 import com.zhuangxv.bot.api.BaseApi;
+import com.zhuangxv.bot.config.BotConfig;
+import com.zhuangxv.bot.config.PropertySourcesUtils;
 import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.exception.BotException;
 import com.zhuangxv.bot.injector.MessageObjectInjector;
 import com.zhuangxv.bot.message.MessageChain;
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class BotApplication implements ApplicationContextAware, DisposableBean {
+public class BotFactory implements ApplicationContextAware, DisposableBean {
 
-    private static final Bootstrap clientBootstrap = new Bootstrap();
-    private static Channel channel;
+    private static final List<Bot> bots = new ArrayList<>();
+
+    private static ConfigurableEnvironment environment;
 
     private static ConfigurableApplicationContext applicationContext;
     private static Map<String, List<HandlerMethod>> handlerMethodMap;
     private static Map<Class<?>, MessageObjectInjector<?>> objectInjectorMap;
-    private static final Map<String, ResultCondition> resultConditionMap = new ConcurrentHashMap<>();
-    private static final Map<String, ApiResult> apiResultMap = new ConcurrentHashMap<>();
+
+    protected static ExecutorService executorService = Executors.newFixedThreadPool(4);
+    protected static BlockingQueue<BaseApi> apiBlockingQueue = new LinkedBlockingQueue<>();
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        if (BotApplication.applicationContext == null && applicationContext instanceof ConfigurableApplicationContext) {
-            BotApplication.applicationContext = (ConfigurableApplicationContext) applicationContext;
+        if (BotFactory.applicationContext == null && applicationContext instanceof ConfigurableApplicationContext) {
+            BotFactory.applicationContext = (ConfigurableApplicationContext) applicationContext;
         }
+    }
+
+    public static void setEnvironment(ConfigurableEnvironment environment) {
+        BotFactory.environment = environment;
     }
 
     @Override
@@ -55,34 +59,8 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
         applicationContext = null;
     }
 
-    public static Bootstrap getClientBootstrap() {
-        return clientBootstrap;
-    }
-
-    public static Channel getChannel() {
-        if (channel == null || !channel.isActive() || !channel.pipeline().get(WebSocketHandler.class).getWebSocketClientHandshaker().isHandshakeComplete()) {
-            throw new BotException("连接失败");
-        }
-        return channel;
-    }
-
-    public static void connection(String host, int port) {
-        if (channel != null && channel.isActive()) {
-            return;
-        }
-        ChannelFuture channelFuture = clientBootstrap.connect(host, port);
-        channelFuture.addListener((ChannelFutureListener) futureListener -> {
-            if (futureListener.isSuccess()) {
-                channel = futureListener.channel();
-            } else {
-                log.error("Failed to connect to go-cqhttp, try connect after 10s");
-                futureListener.channel().eventLoop().schedule(() -> connection(host, port), 10, TimeUnit.SECONDS);
-            }
-        });
-    }
-
     public static void initHandlerMethod() {
-        Map<String, Object> beans = BotApplication.getApplicationContext().getBeansOfType(Object.class);
+        Map<String, Object> beans = BotFactory.getApplicationContext().getBeansOfType(Object.class);
         handlerMethodMap = new HashMap<>();
         for (Object bean : beans.values()) {
             Class<?> beanClass = bean.getClass();
@@ -110,11 +88,41 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
         log.info("初始化事件处理器完成.");
     }
 
+    public static void initBot() {
+        String configKey = "bot";
+        List<BotConfig> botConfigs;
+        if (PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey).size() == 0
+                && PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey + "[0]").size() == 0) {
+            throw new BotException("配置不存在");
+        } else {
+            Binder binder = Binder.get(BotFactory.environment);
+            if (PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey + "[0]").size() > 0) {
+                botConfigs = binder.bind(configKey, Bindable.listOf(BotConfig.class)).get();
+            } else {
+                botConfigs = new ArrayList<>();
+                botConfigs.add(binder.bind(configKey, Bindable.of(BotConfig.class)).get());
+            }
+        }
+        if (botConfigs.isEmpty()) {
+            throw new BotException("配置不存在");
+        }
+        BotDispatcher botDispatcher = BotFactory.getBeanByClass(BotDispatcher.class);
+        if (botDispatcher == null) {
+            throw new BotException("BotDispatcher初始化失败");
+        }
+        for (BotConfig botConfig : botConfigs) {
+            BotFactory.bots.add(new Bot(botConfig, botDispatcher));
+        }
+        for (Bot bot : BotFactory.bots) {
+            bot.getBotClient().connection();
+        }
+    }
+
     public static List<HandlerMethod> getHandlerMethodList(String botName) {
         return handlerMethodMap.get(botName);
     }
 
-    public static List<Object> handleMethod(Set<HandlerMethod> handlerMethodSet, MessageEvent messageEvent, MessageChain messageChain) {
+    public static List<Object> handleMethod(Set<HandlerMethod> handlerMethodSet, MessageEvent messageEvent, MessageChain messageChain, Bot bot) {
         List<Object> resultList = new ArrayList<>();
         for (HandlerMethod handlerMethod : handlerMethodSet) {
             Class<?>[] parameterTypes = handlerMethod.getMethod().getParameterTypes();
@@ -125,7 +133,7 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
                 if (objectInjector == null) {
                     objects[i] = null;
                 } else {
-                    objects[i] = objectInjector.getObject(messageEvent, messageChain);
+                    objects[i] = objectInjector.getObject(messageEvent, messageChain, bot);
                 }
             }
             try {
@@ -141,62 +149,6 @@ public class BotApplication implements ApplicationContextAware, DisposableBean {
             }
         }
         return resultList;
-    }
-
-    public synchronized static ApiResult invokeApi(BaseApi baseApi) {
-        channel.writeAndFlush(new TextWebSocketFrame(baseApi.buildJson()));
-        ResultCondition resultCondition = createResultCondition();
-        resultConditionMap.put(baseApi.getEcho(), resultCondition);
-        ApiResult apiResult = getApiResult(baseApi.getEcho());
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            log.warn(e.getMessage(), e);
-        }
-        return apiResult;
-    }
-
-    private static ApiResult getApiResult(String echo) {
-        ResultCondition resultCondition = resultConditionMap.get(echo);
-        if (resultCondition == null) {
-            return null;
-        }
-        try {
-            resultCondition.getLock().lock();
-            ApiResult apiResult = apiResultMap.get(echo);
-            if (apiResult == null) {
-                resultCondition.getCondition().await(5, TimeUnit.SECONDS);
-                apiResult = apiResultMap.get(echo);
-            }
-            apiResultMap.remove(echo);
-            return apiResult;
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-            return null;
-        } finally {
-            resultCondition.getLock().unlock();
-        }
-    }
-
-    public static void setApiResult(String echo, ApiResult apiResult) {
-        ResultCondition resultCondition = resultConditionMap.get(echo);
-        if (resultCondition == null) {
-            return;
-        }
-        apiResultMap.put(echo, apiResult);
-        try {
-            resultCondition.getLock().lock();
-            resultCondition.getCondition().signalAll();
-        } finally {
-            resultCondition.getLock().unlock();
-        }
-    }
-
-    private static ResultCondition createResultCondition() {
-        ResultCondition resultCondition = new ResultCondition();
-        resultCondition.setLock(new ReentrantLock());
-        resultCondition.setCondition(resultCondition.getLock().newCondition());
-        return resultCondition;
     }
 
     public static ConfigurableApplicationContext getApplicationContext() {

@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class BotConfig {
 
-    private String configKey = "bot";
+    private String botName;
 
     private String websocketUrl;
 

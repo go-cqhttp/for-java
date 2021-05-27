@@ -3,7 +3,8 @@ package com.zhuangxv.bot.handler.message;
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.annotation.GroupMessageHandler;
 import com.zhuangxv.bot.contact.support.Group;
-import com.zhuangxv.bot.core.BotApplication;
+import com.zhuangxv.bot.core.Bot;
+import com.zhuangxv.bot.core.BotFactory;
 import com.zhuangxv.bot.core.HandlerMethod;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
 import com.zhuangxv.bot.handler.EventHandler;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 public class GroupMessageEventHandler implements EventHandler {
 
     @Override
-    public void handle(JSONObject jsonObject) {
+    public void handle(JSONObject jsonObject, Bot bot) {
         if (!GroupMessageEvent.isSupport(jsonObject)) {
             return;
         }
@@ -33,7 +34,7 @@ public class GroupMessageEventHandler implements EventHandler {
             messageChain.add(MessageTypeHandle.getMessage(groupMessageEvent.getMessage().getJSONObject(i)));
         }
         log.debug(messageChain.toMessageString());
-        List<HandlerMethod> handlerMethodList = BotApplication.getHandlerMethodList("bot");
+        List<HandlerMethod> handlerMethodList = BotFactory.getHandlerMethodList("bot");
         if (handlerMethodList == null || handlerMethodList.isEmpty()) {
             return;
         }
@@ -50,13 +51,13 @@ public class GroupMessageEventHandler implements EventHandler {
             }
             return groupMessageHandler.regex().equals("none") || messageChain.toString().matches(groupMessageHandler.regex());
         }).collect(Collectors.toSet());
-        List<Object> resultList = BotApplication.handleMethod(handlerMethodSet, groupMessageEvent, messageChain);
+        List<Object> resultList = BotFactory.handleMethod(handlerMethodSet, groupMessageEvent, messageChain, bot);
         for (Object result : resultList) {
             if (result instanceof Message) {
-                new Group(groupMessageEvent.getGroupId()).sendMessage((Message) result);
+                new Group(groupMessageEvent.getGroupId(), bot).sendMessage((Message) result);
             }
             if (result instanceof MessageChain) {
-                new Group(groupMessageEvent.getGroupId()).sendMessage((MessageChain) result);
+                new Group(groupMessageEvent.getGroupId(), bot).sendMessage((MessageChain) result);
             }
         }
     }

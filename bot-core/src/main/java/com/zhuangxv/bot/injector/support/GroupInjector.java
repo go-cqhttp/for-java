@@ -1,6 +1,7 @@
 package com.zhuangxv.bot.injector.support;
 
 import com.zhuangxv.bot.contact.support.Group;
+import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
 import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.injector.MessageObjectInjector;
@@ -13,10 +14,10 @@ public class GroupInjector implements MessageObjectInjector<Group> {
     }
 
     @Override
-    public Group getObject(MessageEvent messageEvent, MessageChain messageChain) {
+    public Group getObject(MessageEvent messageEvent, MessageChain messageChain, Bot bot) {
         if (!(messageEvent instanceof GroupMessageEvent)) {
             return null;
         }
-        return new Group(((GroupMessageEvent) messageEvent).getGroupId());
+        return new Group(((GroupMessageEvent) messageEvent).getGroupId(), bot);
     }
 }

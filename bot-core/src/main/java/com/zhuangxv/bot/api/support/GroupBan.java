@@ -2,24 +2,19 @@ package com.zhuangxv.bot.api.support;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.zhuangxv.bot.api.BaseApi;
-import com.zhuangxv.bot.message.MessageChain;
+import com.zhuangxv.bot.core.Bot;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-public class GroupBan implements BaseApi {
+public class GroupBan extends BaseApi {
 
     private final GroupBan.Param param;
 
-    public static GroupBan buildApi(long groupId, boolean enable) {
-        GroupBan.Param param = new GroupBan.Param();
-        param.setGroupId(groupId);
-        param.setEnable(enable);
-        return new GroupBan(param);
-    }
-
-    private GroupBan(GroupBan.Param param) {
-        this.param = param;
+    public GroupBan(long groupId, boolean enable) {
+        this.param = new GroupBan.Param();
+        this.param.setGroupId(groupId);
+        this.param.setEnable(enable);
     }
 
     @Override
@@ -30,11 +25,6 @@ public class GroupBan implements BaseApi {
     @Override
     public Object getParams() {
         return param;
-    }
-
-    @Override
-    public String getEcho() {
-        return "no";
     }
 
     @Data

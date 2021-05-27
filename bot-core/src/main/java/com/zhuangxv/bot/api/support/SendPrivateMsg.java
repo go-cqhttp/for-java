@@ -4,29 +4,28 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.zhuangxv.bot.api.BaseApi;
+import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.message.MessageChain;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-public class SendPrivateMsg implements BaseApi {
+public class SendPrivateMsg extends BaseApi {
 
     private final SendPrivateMsg.Param param;
 
-    public static SendPrivateMsg buildApi(long groupId, MessageChain messageChain) {
-        return buildApi(groupId, messageChain, false);
+    public SendPrivateMsg(long userId, MessageChain messageChain) {
+        this.param = new SendPrivateMsg.Param();
+        this.param.setUserId(userId);
+        this.param.setMessage(JSON.parseArray(messageChain.toMessageString()));
+        this.param.setAutoEscape(false);
     }
 
-    public static SendPrivateMsg buildApi(long userId, MessageChain messageChain, boolean autoEscape) {
-        SendPrivateMsg.Param param = new SendPrivateMsg.Param();
-        param.setUserId(userId);
-        param.setMessage(JSON.parseArray(messageChain.toMessageString()));
-        param.setAutoEscape(autoEscape);
-        return new SendPrivateMsg(param);
-    }
-
-    private SendPrivateMsg(SendPrivateMsg.Param param) {
-        this.param = param;
+    public SendPrivateMsg(long userId, MessageChain messageChain, boolean autoEscape) {
+        this.param = new SendPrivateMsg.Param();
+        this.param.setUserId(userId);
+        this.param.setMessage(JSON.parseArray(messageChain.toMessageString()));
+        this.param.setAutoEscape(autoEscape);
     }
 
     @Override
@@ -37,11 +36,6 @@ public class SendPrivateMsg implements BaseApi {
     @Override
     public Object getParams() {
         return param;
-    }
-
-    @Override
-    public String getEcho() {
-        return "no";
     }
 
     @Data

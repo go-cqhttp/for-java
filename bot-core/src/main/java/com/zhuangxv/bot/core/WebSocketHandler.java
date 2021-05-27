@@ -13,18 +13,18 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 @Slf4j
 @Sharable
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor
 public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     private final BotConfig botConfig;
     private final BotDispatcher botDispatcher;
+    private final Bot bot;
 
     private WebSocketClientHandshaker webSocketClientHandshaker;
 
@@ -37,13 +37,14 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         HttpHeaders httpHeaders = new DefaultHttpHeaders();
         httpHeaders.add("Authorization", "Bearer " + this.botConfig.getAccessToken());
         this.webSocketClientHandshaker = WebSocketClientHandshakerFactory
-                .newHandshaker(new URI(String.format("ws://%s:%d", this.botConfig.getWebsocketUrl(), this.botConfig.getWebsocketPort())), WebSocketVersion.V13, null, false, httpHeaders);;
+                .newHandshaker(new URI(String.format("ws://%s:%d", this.botConfig.getWebsocketUrl(), this.botConfig.getWebsocketPort())), WebSocketVersion.V13, null, false, httpHeaders);
+        ;
         this.webSocketClientHandshaker.handshake(ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        BotApplication.connection(this.botConfig.getWebsocketUrl(), this.botConfig.getWebsocketPort());
+        this.bot.getBotClient().connection();
     }
 
     @Override
@@ -52,10 +53,11 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         if (!this.webSocketClientHandshaker.isHandshakeComplete()) {
             try {
                 this.webSocketClientHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
-                log.info("Go-cqhttp connected!");
+                log.info(String.format("[%s]Go-cqhttp connected!", this.botConfig.getBotName()));
+                new Thread(bot::flushFriends).start();
             } catch (WebSocketHandshakeException e) {
-                log.error("Go-cqhttp failed to connect, Token authentication failed!");
-                BotApplication.getApplicationContext().close();
+                log.error(String.format("[%s]Go-cqhttp failed to connect, Token authentication failed!", this.botConfig.getBotName()));
+                BotFactory.getApplicationContext().close();
                 Runtime.getRuntime().exit(0);
             }
             return;
@@ -64,7 +66,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             WebSocketFrame frame = (WebSocketFrame) msg;
             if (frame instanceof TextWebSocketFrame) {
                 TextWebSocketFrame textFrame = (TextWebSocketFrame) frame;
-                this.botDispatcher.handle(textFrame.text());
+                this.botDispatcher.handle(textFrame.text(), this.bot);
             } else if (frame instanceof CloseWebSocketFrame) {
                 ch.close();
             }

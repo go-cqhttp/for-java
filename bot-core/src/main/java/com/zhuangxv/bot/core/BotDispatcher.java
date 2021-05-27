@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -26,17 +27,25 @@ public class BotDispatcher {
         this.executorService = Executors.newFixedThreadPool(4);
     }
 
-    public void handle(String message) {
+    public void handle(String message, Bot bot) {
         JSONObject jsonObject = JSON.parseObject(message);
         if (jsonObject.containsKey("echo") && jsonObject.containsKey("status") && jsonObject.containsKey("retcode") && jsonObject.containsKey("data")) {
-            ApiResult apiResult = JSON.parseObject(message, ApiResult.class);
-            BotApplication.setApiResult(apiResult.getEcho(), apiResult);
+            ApiResult apiResult = null;
+            try {
+                apiResult = JSON.parseObject(message, ApiResult.class);
+                CompletableFuture<ApiResult> completableFuture = bot.getBotClient().completableFutureMap.get(apiResult.getEcho());
+                if (completableFuture != null) {
+                    completableFuture.complete(apiResult);
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+            }
             return;
         }
         this.executorService.submit(() -> {
             try {
                 for (EventHandler eventHandler : eventHandlerMap.values()) {
-                    eventHandler.handle(jsonObject);
+                    eventHandler.handle(jsonObject, bot);
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);

@@ -14,11 +14,9 @@ import org.springframework.boot.CommandLineRunner;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class BotInit implements CommandLineRunner {
 
-    private final BotConfig botConfig;
-
     @Override
     public void run(String... args) {
-        BotApplication.initHandlerMethod();
-        BotApplication.connection(this.botConfig.getWebsocketUrl(), this.botConfig.getWebsocketPort());
+        BotFactory.initHandlerMethod();
+        BotFactory.initBot();
     }
 }

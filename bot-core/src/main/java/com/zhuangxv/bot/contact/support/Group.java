@@ -1,21 +1,17 @@
 package com.zhuangxv.bot.contact.support;
 
-import com.zhuangxv.bot.api.ApiResult;
-import com.zhuangxv.bot.api.support.GroupBan;
-import com.zhuangxv.bot.api.support.SendGroupMsg;
-import com.zhuangxv.bot.api.support.SendPrivateMsg;
 import com.zhuangxv.bot.contact.Contact;
-import com.zhuangxv.bot.core.BotApplication;
-import com.zhuangxv.bot.exception.BotException;
-import com.zhuangxv.bot.message.Message;
+import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.message.MessageChain;
 
 public class Group implements Contact {
 
     private final long groupId;
+    private final Bot bot;
 
-    public Group(long groupId) {
+    public Group(long groupId, Bot bot) {
         this.groupId = groupId;
+        this.bot = bot;
     }
 
     public long getGroupId() {
@@ -24,39 +20,23 @@ public class Group implements Contact {
 
     @Override
     public int sendMessage(MessageChain messageChain) {
-        ApiResult apiResult = BotApplication.invokeApi(SendGroupMsg.buildApi(this.groupId, messageChain));
-        if (apiResult == null || !"ok".equals(apiResult.getStatus())) {
-            throw new BotException("调用api出错: " + apiResult);
-        }
-        return apiResult.getData().getIntValue("message_id");
-    }
-
-    public int sendTempMessage(long userId, Message message) {
-        MessageChain messageChain = new MessageChain();
-        messageChain.add(message);
-        return this.sendTempMessage(userId, messageChain);
+        return this.bot.sendGroupMessage(this.groupId, messageChain);
     }
 
     public int sendTempMessage(long userId, MessageChain messageChain) {
-        ApiResult apiResult = BotApplication.invokeApi(SendPrivateMsg.buildApi(userId, messageChain));
-        if (apiResult == null || !"ok".equals(apiResult.getStatus())) {
-            throw new BotException("调用api出错: " + apiResult);
-        }
-        return apiResult.getData().getIntValue("message_id");
+        return this.getMember(userId).sendMessage(messageChain);
     }
 
     public void groupBan() {
-        ApiResult apiResult = BotApplication.invokeApi(GroupBan.buildApi(this.groupId, true));
-        if (apiResult == null || !"ok".equals(apiResult.getStatus())) {
-            throw new BotException("调用api出错: " + apiResult);
-        }
+        this.bot.groupBan(this.groupId);
     }
 
     public void groupPardon() {
-        ApiResult apiResult = BotApplication.invokeApi(GroupBan.buildApi(this.groupId, false));
-        if (apiResult == null || !"ok".equals(apiResult.getStatus())) {
-            throw new BotException("调用api出错: " + apiResult);
-        }
+        this.bot.groupPardon(this.groupId);
+    }
+
+    public Member getMember(long userId) {
+        return new Member(userId, this.groupId, this.bot);
     }
 
 }

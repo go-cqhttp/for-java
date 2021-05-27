@@ -10,19 +10,21 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-public class SendGroupMsg extends BaseApi {
+public class SendTempMsg extends BaseApi {
 
-    private final SendGroupMsg.Param param;
+    private final SendTempMsg.Param param;
 
-    public SendGroupMsg(long groupId, MessageChain messageChain) {
-        this.param = new SendGroupMsg.Param();
+    public SendTempMsg(long userId, long groupId, MessageChain messageChain) {
+        this.param = new SendTempMsg.Param();
+        this.param.setUserId(userId);
         this.param.setGroupId(groupId);
         this.param.setMessage(JSON.parseArray(messageChain.toMessageString()));
         this.param.setAutoEscape(false);
     }
 
-    public SendGroupMsg(long groupId, MessageChain messageChain, boolean autoEscape) {
-        this.param = new SendGroupMsg.Param();
+    public SendTempMsg(long userId, long groupId, MessageChain messageChain, boolean autoEscape) {
+        this.param = new SendTempMsg.Param();
+        this.param.setUserId(userId);
         this.param.setGroupId(groupId);
         this.param.setMessage(JSON.parseArray(messageChain.toMessageString()));
         this.param.setAutoEscape(autoEscape);
@@ -30,7 +32,7 @@ public class SendGroupMsg extends BaseApi {
 
     @Override
     public String getAction() {
-        return "send_group_msg";
+        return "send_private_msg";
     }
 
     @Override
@@ -41,6 +43,9 @@ public class SendGroupMsg extends BaseApi {
     @Data
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Param {
+
+        @JSONField(name = "user_id")
+        private long userId;
 
         @JSONField(name = "group_id")
         private long groupId;

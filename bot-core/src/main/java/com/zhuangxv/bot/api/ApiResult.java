@@ -12,7 +12,7 @@ public class ApiResult {
     @JSONField(name = "retcode")
     private int retCode;
 
-    private JSONObject data;
+    private Object data;
 
     private String echo;
 

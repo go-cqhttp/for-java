@@ -1,7 +1,8 @@
 package com.zhuangxv.bot.handler.meta;
 
 import com.alibaba.fastjson.JSONObject;
-import com.zhuangxv.bot.core.BotApplication;
+import com.zhuangxv.bot.core.Bot;
+import com.zhuangxv.bot.core.BotFactory;
 import com.zhuangxv.bot.event.meta.HeartbeatEvent;
 import com.zhuangxv.bot.handler.EventHandler;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
@@ -14,11 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class HeartbeatEventHandler implements EventHandler {
 
     @Override
-    public void handle(JSONObject jsonObject) {
+    public void handle(JSONObject jsonObject, Bot bot) {
         if (!HeartbeatEvent.isSupport(jsonObject)) {
             return;
         }
-        BotApplication.getChannel().writeAndFlush(new PingWebSocketFrame());
+        bot.getBotClient().getChannel().writeAndFlush(new PingWebSocketFrame());
         HeartbeatEvent heartbeatEvent = jsonObject.toJavaObject(HeartbeatEvent.class);
         log.debug("heartbeat-event: " + heartbeatEvent);
     }
