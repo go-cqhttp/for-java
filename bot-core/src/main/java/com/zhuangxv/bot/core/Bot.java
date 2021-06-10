@@ -84,6 +84,10 @@ public class Bot {
         return getObject(apiResult.getData()).getIntValue("message_id");
     }
 
+    public void deleteMsg(long messageId) {
+        this.botClient.invokeApi(new DeleteMsg(messageId));
+    }
+
     private JSONObject getObject(Object object) {
         if (!(object instanceof JSONObject)) {
             throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botConfig.getBotName()));
