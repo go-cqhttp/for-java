@@ -9,8 +9,6 @@ public class BotConfig {
 
     private String websocketUrl;
 
-    private int websocketPort;
-
     private String accessToken;
 
 }

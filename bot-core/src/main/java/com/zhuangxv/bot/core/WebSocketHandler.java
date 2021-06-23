@@ -37,7 +37,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         HttpHeaders httpHeaders = new DefaultHttpHeaders();
         httpHeaders.add("Authorization", "Bearer " + this.botConfig.getAccessToken());
         this.webSocketClientHandshaker = WebSocketClientHandshakerFactory
-                .newHandshaker(new URI(String.format("ws://%s:%d", this.botConfig.getWebsocketUrl(), this.botConfig.getWebsocketPort())), WebSocketVersion.V13, null, false, httpHeaders);
+                .newHandshaker(new URI(this.botConfig.getWebsocketUrl()), WebSocketVersion.V13, null, false, httpHeaders);
         ;
         this.webSocketClientHandshaker.handshake(ctx.channel());
     }

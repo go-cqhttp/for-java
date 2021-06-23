@@ -9,11 +9,15 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.SocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
@@ -63,7 +67,13 @@ public class BotClient {
         if (channel != null && channel.isActive()) {
             return;
         }
-        ChannelFuture channelFuture = clientBootstrap.connect(this.botConfig.getWebsocketUrl(), this.botConfig.getWebsocketPort());
+        URI wsUri = null;
+        try {
+            wsUri = new URI(this.botConfig.getWebsocketUrl());
+        } catch (URISyntaxException e) {
+            throw new BotException("websocket url 格式错误.");
+        }
+        ChannelFuture channelFuture = clientBootstrap.connect(wsUri.getHost(), wsUri.getPort());
         channelFuture.addListener((ChannelFutureListener) futureListener -> {
             if (futureListener.isSuccess()) {
                 channel = futureListener.channel();
