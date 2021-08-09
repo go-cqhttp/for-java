@@ -2,6 +2,7 @@ package com.zhuangxv.bot.support;
 
 import com.zhuangxv.bot.core.*;
 import com.zhuangxv.bot.handler.message.GroupMessageEventHandler;
+import com.zhuangxv.bot.handler.message.GroupRecallEventHandler;
 import com.zhuangxv.bot.handler.message.PrivateMessageEventHandler;
 import com.zhuangxv.bot.handler.meta.HeartbeatEventHandler;
 import com.zhuangxv.bot.injector.support.*;
@@ -22,6 +23,8 @@ public class BotApplicationRegistrar implements ImportSelector {
                 HeartbeatEventHandler.class.getName(),
                 PrivateMessageEventHandler.class.getName(),
                 GroupMessageEventHandler.class.getName(),
+                GroupRecallEventHandler.class.getName(),
+                RecallMessageInjector.class.getName(),
                 BotInit.class.getName(),
                 MessageStringInjector.class.getName(),
                 GroupInjector.class.getName(),

@@ -5,10 +5,12 @@ import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.message.MessageChain;
 
-public interface MessageObjectInjector<T> {
+public interface ObjectInjector<T> {
 
-    Class<T> getType();
+    String[] getType();
 
-    T getObject(MessageEvent messageEvent, MessageChain messageChain, Bot bot);
+    Class<T> getClassType();
+
+    T getObject(BaseEvent event, Bot bot);
 
 }

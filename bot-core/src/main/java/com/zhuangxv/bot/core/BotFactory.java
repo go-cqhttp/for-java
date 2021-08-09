@@ -2,15 +2,13 @@ package com.zhuangxv.bot.core;
 
 import com.zhuangxv.bot.annotation.FriendMessageHandler;
 import com.zhuangxv.bot.annotation.GroupMessageHandler;
+import com.zhuangxv.bot.annotation.GroupRecallHandler;
 import com.zhuangxv.bot.annotation.TempMessageHandler;
-import com.zhuangxv.bot.api.ApiResult;
-import com.zhuangxv.bot.api.BaseApi;
 import com.zhuangxv.bot.config.BotConfig;
 import com.zhuangxv.bot.config.PropertySourcesUtils;
-import com.zhuangxv.bot.event.message.MessageEvent;
+import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.exception.BotException;
-import com.zhuangxv.bot.injector.MessageObjectInjector;
-import com.zhuangxv.bot.message.MessageChain;
+import com.zhuangxv.bot.injector.ObjectInjector;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
@@ -21,11 +19,10 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,10 +34,7 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
 
     private static ConfigurableApplicationContext applicationContext;
     private static Map<String, List<HandlerMethod>> handlerMethodMap;
-    private static Map<Class<?>, MessageObjectInjector<?>> objectInjectorMap;
-
-    protected static ExecutorService executorService = Executors.newFixedThreadPool(4);
-    protected static BlockingQueue<BaseApi> apiBlockingQueue = new LinkedBlockingQueue<>();
+    private static Map<String, Map<Class<?>, ObjectInjector<?>>> objectInjectorMap;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -59,14 +53,17 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
         applicationContext = null;
     }
 
+    @SuppressWarnings("all")
     public static void initHandlerMethod() {
         Map<String, Object> beans = BotFactory.getApplicationContext().getBeansOfType(Object.class);
         handlerMethodMap = new HashMap<>();
         for (Object bean : beans.values()) {
             Class<?> beanClass = bean.getClass();
-            Set<Method> methodSet = Arrays.stream(beanClass.getMethods()).filter(method -> method.isAnnotationPresent(GroupMessageHandler.class)
-                    || method.isAnnotationPresent(TempMessageHandler.class)
-                    || method.isAnnotationPresent(FriendMessageHandler.class)
+            Set<Method> methodSet = Arrays.stream(beanClass.getMethods()).filter(method ->
+                    method.isAnnotationPresent(GroupMessageHandler.class)
+                            || method.isAnnotationPresent(TempMessageHandler.class)
+                            || method.isAnnotationPresent(FriendMessageHandler.class)
+                            || method.isAnnotationPresent(GroupRecallHandler.class)
             ).collect(Collectors.toSet());
             methodSet.forEach(method -> {
                 HandlerMethod handlerMethod = new HandlerMethod() {
@@ -81,9 +78,14 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
             });
         }
         objectInjectorMap = new HashMap<>();
-        Map<String, MessageObjectInjector> objectInjectors = getBeansByClass(MessageObjectInjector.class);
+        Map<String, ObjectInjector> objectInjectors = getBeansByClass(ObjectInjector.class);
         if (objectInjectors != null) {
-            objectInjectors.values().forEach(objectInjector -> objectInjectorMap.put(objectInjector.getType(), objectInjector));
+            for (ObjectInjector objectInjector : objectInjectors.values()) {
+                for (String type : objectInjector.getType()) {
+                    Map<Class<?>, ObjectInjector<?>> objectInjectorMapTemp = BotFactory.objectInjectorMap.computeIfAbsent(type, key -> new HashMap<>());
+                    objectInjectorMapTemp.put(objectInjector.getClassType(), objectInjector);
+                }
+            }
         }
         log.info("初始化事件处理器完成.");
     }
@@ -118,22 +120,27 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
         }
     }
 
-    public static List<HandlerMethod> getHandlerMethodList(String botName) {
-        return handlerMethodMap.get(botName);
+    public static Set<HandlerMethod> getHandlerMethodListByAnnotation(String botName, Predicate<? super HandlerMethod> predicate) {
+        List<HandlerMethod> handlerMethods = handlerMethodMap.get(botName);
+        if (handlerMethods == null || handlerMethods.isEmpty()) {
+            return new HashSet<>();
+        }
+        return handlerMethods.stream().filter(predicate).collect(Collectors.toSet());
     }
 
-    public static List<Object> handleMethod(Set<HandlerMethod> handlerMethodSet, MessageEvent messageEvent, MessageChain messageChain, Bot bot) {
+    public static List<Object> handleMethod(Bot bot, BaseEvent event, Predicate<? super HandlerMethod> predicate, String objectInjectorType) {
         List<Object> resultList = new ArrayList<>();
+        Set<HandlerMethod> handlerMethodSet = getHandlerMethodListByAnnotation("bot", predicate);
         for (HandlerMethod handlerMethod : handlerMethodSet) {
             Class<?>[] parameterTypes = handlerMethod.getMethod().getParameterTypes();
             Object[] objects = new Object[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
                 Class<?> parameterType = parameterTypes[i];
-                MessageObjectInjector<?> objectInjector = objectInjectorMap.get(parameterType);
+                ObjectInjector<?> objectInjector = objectInjectorMap.get(objectInjectorType) != null ? objectInjectorMap.get(objectInjectorType).get(parameterType) : null;
                 if (objectInjector == null) {
                     objects[i] = null;
                 } else {
-                    objects[i] = objectInjector.getObject(messageEvent, messageChain, bot);
+                    objects[i] = objectInjector.getObject(event, bot);
                 }
             }
             try {
@@ -155,13 +162,6 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
         return applicationContext;
     }
 
-    public static Object getBeanByName(String name) {
-        if (applicationContext == null || !applicationContext.containsBean(name)) {
-            return null;
-        }
-        return applicationContext.getBean(name);
-    }
-
     public static <T> T getBeanByClass(Class<T> clazz) {
         if (applicationContext == null) {
             return null;
@@ -169,21 +169,10 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
         return applicationContext.getBean(clazz);
     }
 
-    public static <T> T getBeanByName(String name, Class<T> clazz) {
-        if (applicationContext == null || !applicationContext.containsBean(name)) {
-            return null;
-        }
-        return applicationContext.getBean(name, clazz);
-    }
-
     public static <T> Map<String, T> getBeansByClass(Class<T> tClass) {
         if (applicationContext == null) {
             return null;
         }
         return applicationContext.getBeansOfType(tClass);
-    }
-
-    public static Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> aClass) {
-        return applicationContext.getBeansWithAnnotation(aClass);
     }
 }

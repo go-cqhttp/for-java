@@ -15,12 +15,12 @@ public @interface GroupMessageHandler {
     /**
      * 限制某个群
      */
-    long groupId() default 0;
+    long[] groupIds() default {};
 
     /**
      * 限制发言人
      */
-    long senderId() default 0;
+    long[] senderIds() default {};
 
     /**
      * 是否被@

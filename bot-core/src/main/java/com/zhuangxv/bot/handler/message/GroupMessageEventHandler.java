@@ -5,19 +5,17 @@ import com.zhuangxv.bot.annotation.GroupMessageHandler;
 import com.zhuangxv.bot.contact.support.Group;
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.core.BotFactory;
-import com.zhuangxv.bot.core.HandlerMethod;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
 import com.zhuangxv.bot.handler.EventHandler;
 import com.zhuangxv.bot.message.Message;
 import com.zhuangxv.bot.message.MessageChain;
 import com.zhuangxv.bot.message.MessageTypeHandle;
+import com.zhuangxv.bot.util.ArrayUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -34,24 +32,20 @@ public class GroupMessageEventHandler implements EventHandler {
             messageChain.add(MessageTypeHandle.getMessage(groupMessageEvent.getMessage().getJSONObject(i)));
         }
         log.debug(messageChain.toMessageString());
-        List<HandlerMethod> handlerMethodList = BotFactory.getHandlerMethodList("bot");
-        if (handlerMethodList == null || handlerMethodList.isEmpty()) {
-            return;
-        }
-        Set<HandlerMethod> handlerMethodSet = handlerMethodList.stream().filter(handlerMethod -> {
+        List<Object> resultList = BotFactory.handleMethod(bot, groupMessageEvent, handlerMethod -> {
             if (!handlerMethod.getMethod().isAnnotationPresent(GroupMessageHandler.class)) {
                 return false;
             }
             GroupMessageHandler groupMessageHandler = handlerMethod.getMethod().getAnnotation(GroupMessageHandler.class);
-            if (groupMessageHandler.groupId() != 0 && groupMessageHandler.groupId() != groupMessageEvent.getGroupId()) {
+            if (groupMessageHandler.groupIds().length > 0 && !ArrayUtils.contain(groupMessageHandler.groupIds(), groupMessageEvent.getGroupId())) {
                 return false;
             }
-            if (groupMessageHandler.senderId() != 0 && groupMessageHandler.senderId() != groupMessageEvent.getUserId()) {
+
+            if (groupMessageHandler.senderIds().length > 0 && !ArrayUtils.contain(groupMessageHandler.senderIds(), groupMessageEvent.getUserId())) {
                 return false;
             }
             return groupMessageHandler.regex().equals("none") || messageChain.toString().matches(groupMessageHandler.regex());
-        }).collect(Collectors.toSet());
-        List<Object> resultList = BotFactory.handleMethod(handlerMethodSet, groupMessageEvent, messageChain, bot);
+        }, "message");
         for (Object result : resultList) {
             if (result instanceof Message) {
                 new Group(groupMessageEvent.getGroupId(), bot).sendMessage((Message) result);

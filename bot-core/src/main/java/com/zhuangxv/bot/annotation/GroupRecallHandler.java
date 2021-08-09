@@ -4,16 +4,17 @@ import java.lang.annotation.*;
 
 /**
  * @author xiaoxu
- * @date 2020-08-07 16:00
+ * @since 2021/8/9 11:15 上午
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface FriendMessageHandler {
+public @interface GroupRecallHandler {
+
     /**
-     * 匹配正则
+     * 限制某个群
      */
-    String regex() default "none";
+    long[] groupIds() default {};
 
     /**
      * 限制发言人

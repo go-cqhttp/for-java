@@ -1,18 +1,24 @@
 package com.zhuangxv.bot.injector.support;
 
 import com.zhuangxv.bot.core.Bot;
+import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.event.message.MessageEvent;
-import com.zhuangxv.bot.injector.MessageObjectInjector;
+import com.zhuangxv.bot.injector.ObjectInjector;
 import com.zhuangxv.bot.message.MessageChain;
 
-public class BotInjector implements MessageObjectInjector<Bot> {
+public class BotInjector implements ObjectInjector<Bot> {
     @Override
-    public Class<Bot> getType() {
+    public Class<Bot> getClassType() {
         return Bot.class;
     }
 
     @Override
-    public Bot getObject(MessageEvent messageEvent, MessageChain messageChain, Bot bot) {
+    public String[] getType() {
+        return new String[]{"all"};
+    }
+
+    @Override
+    public Bot getObject(BaseEvent event, Bot bot) {
         return bot;
     }
 }

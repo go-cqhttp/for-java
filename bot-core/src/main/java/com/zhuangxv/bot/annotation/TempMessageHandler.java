@@ -19,5 +19,5 @@ public @interface TempMessageHandler {
     /**
      * 限制发言人
      */
-    long senderId() default 0;
+    long[] senderIds() default {};
 }
