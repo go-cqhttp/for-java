@@ -42,6 +42,9 @@ public class PrivateMessageEventHandler implements EventHandler {
                 if (tempMessageHandler.senderIds().length > 0 && !ArrayUtils.contain(tempMessageHandler.senderIds(), privateMessageEvent.getUserId())) {
                     return false;
                 }
+                if (ArrayUtils.contain(tempMessageHandler.excludeSenderIds(), privateMessageEvent.getUserId())) {
+                    return false;
+                }
                 return tempMessageHandler.regex().equals("none") || messageChain.toString().matches(tempMessageHandler.regex());
             }, "message");
         } else if ("friend".equals(privateMessageEvent.getSubType())) {
@@ -51,6 +54,9 @@ public class PrivateMessageEventHandler implements EventHandler {
                 }
                 FriendMessageHandler friendMessageHandler = handlerMethod.getMethod().getAnnotation(FriendMessageHandler.class);
                 if (friendMessageHandler.senderIds().length > 0 && !ArrayUtils.contain(friendMessageHandler.senderIds(), privateMessageEvent.getUserId())) {
+                    return false;
+                }
+                if (ArrayUtils.contain(friendMessageHandler.excludeSenderIds(), privateMessageEvent.getUserId())) {
                     return false;
                 }
                 return friendMessageHandler.regex().equals("none") || messageChain.toString().matches(friendMessageHandler.regex());

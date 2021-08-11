@@ -20,4 +20,9 @@ public @interface TempMessageHandler {
      * 限制发言人
      */
     long[] senderIds() default {};
+
+    /**
+     * 排除发言人
+     */
+    long[] excludeSenderIds() default {};
 }

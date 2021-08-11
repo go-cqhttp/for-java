@@ -40,8 +40,13 @@ public class GroupMessageEventHandler implements EventHandler {
             if (groupMessageHandler.groupIds().length > 0 && !ArrayUtils.contain(groupMessageHandler.groupIds(), groupMessageEvent.getGroupId())) {
                 return false;
             }
-
+            if (ArrayUtils.contain(groupMessageHandler.excludeGroupIds(), groupMessageEvent.getGroupId())) {
+                return false;
+            }
             if (groupMessageHandler.senderIds().length > 0 && !ArrayUtils.contain(groupMessageHandler.senderIds(), groupMessageEvent.getUserId())) {
+                return false;
+            }
+            if (ArrayUtils.contain(groupMessageHandler.excludeSenderIds(), groupMessageEvent.getUserId())) {
                 return false;
             }
             return groupMessageHandler.regex().equals("none") || messageChain.toString().matches(groupMessageHandler.regex());

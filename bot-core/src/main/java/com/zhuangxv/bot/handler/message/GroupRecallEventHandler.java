@@ -41,7 +41,13 @@ public class GroupRecallEventHandler implements EventHandler {
             if (groupRecallHandler.groupIds().length > 0 && !ArrayUtils.contain(groupRecallHandler.groupIds(), groupRecallEvent.getGroupId())) {
                 return false;
             }
+            if (ArrayUtils.contain(groupRecallHandler.excludeGroupIds(), groupRecallEvent.getGroupId())) {
+                return false;
+            }
             if (groupRecallHandler.senderIds().length > 0 && !ArrayUtils.contain(groupRecallHandler.senderIds(), groupRecallEvent.getOperatorId())) {
+                return false;
+            }
+            if (ArrayUtils.contain(groupRecallHandler.excludeSenderIds(), groupRecallEvent.getOperatorId())) {
                 return false;
             }
             return true;

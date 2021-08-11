@@ -20,4 +20,6 @@ public @interface FriendMessageHandler {
      */
     long[] senderIds() default {};
 
+    long[] excludeSenderIds() default {};
+
 }
