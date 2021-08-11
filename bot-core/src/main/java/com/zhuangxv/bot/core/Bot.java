@@ -86,7 +86,8 @@ public class Bot {
                     if (messageId.equals(messageIdTemp)) {
                         find = true;
                     }
-                } else {
+                }
+                if (find) {
                     result.add(messageChainMap.get(messageIdTemp));
                     if (result.size() >= size) {
                         break;
