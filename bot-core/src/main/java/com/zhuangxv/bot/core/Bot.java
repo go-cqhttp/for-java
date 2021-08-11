@@ -7,11 +7,16 @@ import com.zhuangxv.bot.api.support.*;
 import com.zhuangxv.bot.config.BotConfig;
 import com.zhuangxv.bot.contact.support.Friend;
 import com.zhuangxv.bot.exception.BotException;
+import com.zhuangxv.bot.message.CacheMessage;
+import com.zhuangxv.bot.message.Message;
 import com.zhuangxv.bot.message.MessageChain;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * @author xiaoxu
@@ -21,6 +26,8 @@ import java.util.List;
 public class Bot {
 
     private final List<Friend> friends = new ArrayList<>();
+    private final Map<String, Map<Integer, CacheMessage>> cacheMessageChain = new HashMap<>();
+    private final Lock cacheMessageChainLock = new ReentrantLock();
     private final BotConfig botConfig;
     private final BotClient botClient;
 
@@ -33,10 +40,70 @@ public class Bot {
         return this.botClient;
     }
 
+    public void pushGroupCacheMessageChain(Long groupId, Integer messageId, CacheMessage cacheMessage) {
+        this.pushCacheMessageChain("group", groupId, messageId, cacheMessage);
+
+    }
+
+    public void pushUserCacheMessageChain(Long userId, Integer messageId, CacheMessage cacheMessage) {
+        this.pushCacheMessageChain("user", userId, messageId, cacheMessage);
+    }
+
+    private void pushCacheMessageChain(String prefix, Long id, Integer messageId, CacheMessage cacheMessage) {
+        this.cacheMessageChainLock.lock();
+        try {
+            Map<Integer, CacheMessage> messageChainMap = this.cacheMessageChain.computeIfAbsent(prefix + id, key -> new LinkedHashMap<>());
+            messageChainMap.put(messageId, cacheMessage);
+        } finally {
+            this.cacheMessageChainLock.unlock();
+        }
+    }
+
+    public List<CacheMessage> getGroupCacheMessageChain(Long groupId, Integer messageId, Integer size) {
+        return this.getCacheMessageChain("group", groupId, messageId, size);
+    }
+
+    public List<CacheMessage> getUserCacheMessageChain(Long groupId, Integer messageId, Integer size) {
+        return this.getCacheMessageChain("user", groupId, messageId, size);
+    }
+
+    private List<CacheMessage> getCacheMessageChain(String prefix, long id, Integer messageId, Integer size) {
+        this.cacheMessageChainLock.lock();
+        try {
+            List<CacheMessage> result = new ArrayList<>();
+            Map<Integer, CacheMessage> messageChainMap = this.cacheMessageChain.get(prefix + id);
+            if (messageChainMap == null) {
+                return result;
+            }
+            if (messageChainMap.isEmpty()) {
+                return result;
+            }
+            List<Integer> messageIds = new ArrayList<>(messageChainMap.keySet());
+            boolean find = false;
+            for (int i = messageIds.size() - 1; i >= 0; i--) {
+                Integer messageIdTemp = messageIds.get(i);
+                if (!find) {
+                    if (messageId.equals(messageIdTemp)) {
+                        find = true;
+                    }
+                } else {
+                    result.add(messageChainMap.get(messageIdTemp));
+                    if (result.size() >= size) {
+                        break;
+                    }
+                }
+            }
+            Collections.reverse(result);
+            return result;
+        } finally {
+            this.cacheMessageChainLock.unlock();
+        }
+    }
+
     public void flushFriends() {
         log.info(String.format("[%s]正在刷新好友列表.", this.botConfig.getBotName()));
         ApiResult apiResult = this.botClient.invokeApi(new GetFriends());
-        JSONArray resultArray = getArray(apiResult.getData());
+        JSONArray resultArray = this.getArray(apiResult.getData());
         for (int i = 0; i < resultArray.size(); i++) {
             JSONObject resultObject = resultArray.getJSONObject(i);
             Friend friend = new Friend(resultObject.getLong("user_id"), this);
@@ -58,12 +125,12 @@ public class Bot {
 
     public int sendGroupMessage(long groupId, MessageChain messageChain) {
         ApiResult apiResult = this.botClient.invokeApi(new SendGroupMsg(groupId, messageChain));
-        return getObject(apiResult.getData()).getIntValue("message_id");
+        return this.getObject(apiResult.getData()).getIntValue("message_id");
     }
 
     public int sendTempMessage(long userId, long groupId, MessageChain messageChain) {
         ApiResult apiResult = this.botClient.invokeApi(new SendTempMsg(userId, groupId, messageChain));
-        return getObject(apiResult.getData()).getIntValue("message_id");
+        return this.getObject(apiResult.getData()).getIntValue("message_id");
     }
 
     public void groupBan(long groupId) {
@@ -76,12 +143,12 @@ public class Bot {
 
     public JSONObject getMemberInfo(long groupId, long userId) {
         ApiResult apiResult = this.botClient.invokeApi(new GetMemberInfo(groupId, userId));
-        return getObject(apiResult.getData());
+        return this.getObject(apiResult.getData());
     }
 
     public int sendPrivateMessage(long userId, MessageChain messageChain) {
         ApiResult apiResult = this.botClient.invokeApi(new SendPrivateMsg(userId, messageChain));
-        return getObject(apiResult.getData()).getIntValue("message_id");
+        return this.getObject(apiResult.getData()).getIntValue("message_id");
     }
 
     public void deleteMsg(long messageId) {

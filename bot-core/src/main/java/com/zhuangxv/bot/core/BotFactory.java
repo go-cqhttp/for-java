@@ -138,6 +138,9 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
                 Class<?> parameterType = parameterTypes[i];
                 ObjectInjector<?> objectInjector = objectInjectorMap.get(objectInjectorType) != null ? objectInjectorMap.get(objectInjectorType).get(parameterType) : null;
                 if (objectInjector == null) {
+                    objectInjector = objectInjectorMap.get("all") != null ? objectInjectorMap.get("all").get(parameterType) : null;
+                }
+                if (objectInjector == null) {
                     objects[i] = null;
                 } else {
                     objects[i] = objectInjector.getObject(event, bot);

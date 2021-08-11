@@ -9,11 +9,13 @@ import com.zhuangxv.bot.core.BotFactory;
 import com.zhuangxv.bot.core.HandlerMethod;
 import com.zhuangxv.bot.event.message.PrivateMessageEvent;
 import com.zhuangxv.bot.handler.EventHandler;
+import com.zhuangxv.bot.message.CacheMessage;
 import com.zhuangxv.bot.message.Message;
 import com.zhuangxv.bot.message.MessageChain;
 import com.zhuangxv.bot.message.MessageTypeHandle;
 import com.zhuangxv.bot.util.ArrayUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
 
 import java.util.List;
 import java.util.Set;
@@ -32,6 +34,10 @@ public class PrivateMessageEventHandler implements EventHandler {
             messageChain.add(MessageTypeHandle.getMessage(privateMessageEvent.getMessage().getJSONObject(i)));
         }
         log.debug(messageChain.toMessageString());
+        CacheMessage cacheMessage = new CacheMessage();
+        cacheMessage.setSenderId(privateMessageEvent.getUserId());
+        cacheMessage.setMessageChain(messageChain);
+        bot.pushUserCacheMessageChain(privateMessageEvent.getUserId(), privateMessageEvent.getMessageId(), cacheMessage);
         List<Object> resultList;
         if ("group".equals(privateMessageEvent.getSubType())) {
             resultList = BotFactory.handleMethod(bot, privateMessageEvent, handlerMethod -> {

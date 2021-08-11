@@ -30,9 +30,8 @@ public class BotDispatcher {
     public void handle(String message, Bot bot) {
         JSONObject jsonObject = JSON.parseObject(message);
         if (jsonObject.containsKey("echo") && jsonObject.containsKey("status") && jsonObject.containsKey("retcode") && jsonObject.containsKey("data")) {
-            ApiResult apiResult = null;
             try {
-                apiResult = JSON.parseObject(message, ApiResult.class);
+                ApiResult apiResult = JSON.parseObject(message, ApiResult.class);
                 CompletableFuture<ApiResult> completableFuture = bot.getBotClient().completableFutureMap.get(apiResult.getEcho());
                 if (completableFuture != null) {
                     completableFuture.complete(apiResult);

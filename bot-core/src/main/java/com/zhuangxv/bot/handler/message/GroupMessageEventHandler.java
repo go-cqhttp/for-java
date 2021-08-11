@@ -7,6 +7,7 @@ import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.core.BotFactory;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
 import com.zhuangxv.bot.handler.EventHandler;
+import com.zhuangxv.bot.message.CacheMessage;
 import com.zhuangxv.bot.message.Message;
 import com.zhuangxv.bot.message.MessageChain;
 import com.zhuangxv.bot.message.MessageTypeHandle;
@@ -32,6 +33,10 @@ public class GroupMessageEventHandler implements EventHandler {
             messageChain.add(MessageTypeHandle.getMessage(groupMessageEvent.getMessage().getJSONObject(i)));
         }
         log.debug(messageChain.toMessageString());
+        CacheMessage cacheMessage = new CacheMessage();
+        cacheMessage.setSenderId(groupMessageEvent.getUserId());
+        cacheMessage.setMessageChain(messageChain);
+        bot.pushGroupCacheMessageChain(groupMessageEvent.getGroupId(), groupMessageEvent.getMessageId(), cacheMessage);
         List<Object> resultList = BotFactory.handleMethod(bot, groupMessageEvent, handlerMethod -> {
             if (!handlerMethod.getMethod().isAnnotationPresent(GroupMessageHandler.class)) {
                 return false;
