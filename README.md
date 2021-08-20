@@ -2,7 +2,7 @@
 
 > 基于 go-cqhttp 和 java 的 qq 机器人
 
-### 使用前
+## 使用前
 
 - 在 https://github.com/Mrs4s/go-cqhttp/releases 下载对应平台的可执行文件, 放到 go-cqhttp 目录中
 
@@ -22,57 +22,100 @@
     ```
 - 在启动类上加注解@EnableBot
 
-### 配置
+## 配置
 
 >在resources目录下新建application.yml,如果您熟悉spring,可根据自己需求自行编写配置.
 
 ```
 bot:
-  websocketUrl: #go-cqhttp配置中的正向websocket地址
-  websocketPort: #go-cqhttp配置中的正向websocket端口号
+  botName: #bot名字(保证唯一)
+  websocketUrl: #go-cqhttp配置中的正向websocket地址(如ws://127.0.0.1:6700)
   accessToken: #go-cqhttp配置中的access_token
 ```
 
-### 开始使用
+## 开始使用
 
-* 创建一个类并加入spring管理(可以在类上加@Service注解)
-* 对应方法加上需要解析的类型即可监听对应事件，如下
-    * @GroupMessageHandler 监听群消息
-        * regex 匹配改正则消息时触发该事件
-        * groupIds 只有当收到消息的群号为该参数指定内容时，触发该事件，默认为0即不限制
-        * senderIds 只有当发言人为该参数指定id时，触发该事件，默认为0即不限制
-        * isAt 是否被艾特，如果为true则被艾特的消息才会触发该事件，反之不会触发。
-    * @FriendMessageHandler 监听私聊消息
-        * regex 匹配改正则消息时触发该事件
-        * senderIds 只有当发言人为该参数指定id时，触发该事件，默认为0即不限制
-    * @TempMessageHandler 监听临时会话
-        * regex 匹配改正则消息时触发该事件
-        * groupIds 只有当临时会话从该参数指定群聊发起时，触发该事件，默认为0即不限制
-        * senderIds 只有当发言人为该参数指定id时，触发该事件，默认为0即不限制
-    * @GroupRecallHandler
-        * groupIds
-        * senderIds
-    * 待补充。
-* 方法支持的参数列表(你创建的方法中参数列表的类型允许下列中的任意一个,参数名随意,通过类型区分,不需要的可以不加.)
-    * Group 如果是群消息，会注入群对应实例，否则注入null
-    * GroupMessageEvent 如果是群消息,会注入对应消息事件, 否则注入null
-    * String 消息内容
-    * (Integer||int) 消息id
-    * MessageChain 消息体
-    * Member 如果是群消息，会注入发送人(群成员)对应实例，否则注入null
-    * Friend 如果是私聊消息或临时会话,会注入发送人对应实例，否则注入null
-    * RecallMessage 如果是撤回消息的事件，会注入撤回消息的对应实例 
-    * ...文档待补充
-* 方法支持的返回值列表
-    * void 什么也不做
-    * MessageChain 回复对应消息
-* MessageChain
-    * at 增加艾特指定qq
-    * atAll 增加艾特全体成员
-    * text 增加普通文本消息
-    * image 增加自定义图片,参数支持url文本
-    * reply 回复指定消息
-    * record 增加语音,参数支持url文本
-    * copy 复制一个MessageChain对象
-* 各个组件可进行的操作
-    * ...文档待补充
+* 创建一个SpringBoot项目
+* 创建一个类并加入spring管理(可以在类上加@Service注解,注意配置扫描包路径)
+* 创建一个方法，并在该方法上增加事件注解即可监听该事件(事件注解用法见下方)
+  
+## 事件注解用法
+所有事件注解的参数都是限制该注解是否生效的依据，当全部满足时才会调用该注解所对应的方法，不同事件可注入的对象不同，具体见下方。
+
+--- 
+
+### @GroupMessageHandler
+> 收到群消息时执行该方法
+
+注解参数列表
+
+* regex 正则表达式，该值不为默认值时，将验证消息是否匹配
+* groupIds 验证收到消息的群号是否为当前值的内容，默认为0即不限制
+* excludeGroupIds 验证收到消息的群号是否非当前值的内容，默认为0即不限制
+* senderIds 验证收到消息的人是否为当前值的内容，默认为0即不限制
+* excludeSenderIds 验证收到消息的人是否非当前值的内容，默认为0即不限制
+* isAt 验证是否被艾特，默认为false
+
+可注入到方法中的属性
+
+* Group 该消息所对应群的实例
+* Member 该消息发送者所对应的群成员实例
+* MessageChain 该消息的消息链形式
+* String 该消息的字符串形式  
+* Integer/int 该消息的id
+
+---
+
+### @FriendMessageHander
+> 收到好友私聊消息时执行该方法
+
+注解参数列表
+
+* regex 正则表达式，该值不为默认值时，将验证消息是否匹配
+* senderIds 验证收到消息的人是否为当前值的内容，默认为0即不限制
+* excludeSenderIds 验证收到消息的人是否非当前值的内容，默认为0即不限制
+
+可注入到方法中的属性
+
+* Friend 该消息发送者所对应的好友实例
+* MessageChain 该消息的消息链形式
+* String 该消息的字符串形式
+* Integer/int 该消息的id
+
+---
+
+### @TempMessageHandler
+> 收到临时会话时执行该方法
+
+注解参数列表
+
+* regex 正则表达式，该值不为默认值时，将验证消息是否匹配
+* senderIds 验证收到消息的人是否为当前值的内容，默认为0即不限制
+* excludeSenderIds 验证收到消息的人是否非当前值的内容，默认为0即不限制
+
+可注入到方法中的属性
+
+* TempFriend 该消息发送者所对应的好友实例
+* MessageChain 该消息的消息链形式
+* String 该消息的字符串形式
+* Integer/int 该消息的id
+
+---
+
+### @GroupRecallHandler
+> 有群消息撤回时执行该方法
+
+注解参数列表
+
+* groupIds 验证撤回消息的群号是否为当前值的内容，默认为0即不限制
+* excludeGroupIds 验证撤回消息的群号是否非当前值的内容，默认为0即不限制  
+* senderIds 验证撤回消息的操作人是否为当前值的内容，默认为0即不限制
+* excludeSenderIds 验证撤回消息的操作人是否非当前值的内容，默认为0即不限制
+
+可注入到方法中的属性
+
+* Group 被撤回的消息所在的群实例
+* MessageChain 被撤回的消息的消息链形式
+* String 被撤回的消息的字符串形式
+* Integer/int 被撤回的消息id
+* RecallMessage 包含撤回该消息的操作人以及被撤回消息的发送人id
