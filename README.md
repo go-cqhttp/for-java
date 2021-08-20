@@ -13,7 +13,7 @@
 - clone并执行mvn clean install
 
 - 创建你的springboot项目并引用依赖
-    ```
+    ```xml
     <dependency>
         <groupId>com.zhuangxv</groupId>
         <artifactId>bot-core</artifactId>
@@ -26,7 +26,7 @@
 
 >在resources目录下新建application.yml,如果您熟悉spring,可根据自己需求自行编写配置.
 
-```
+```yml
 bot:
   botName: #bot名字(保证唯一)
   websocketUrl: #go-cqhttp配置中的正向websocket地址(如ws://127.0.0.1:6700)
