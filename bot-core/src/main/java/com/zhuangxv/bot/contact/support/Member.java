@@ -29,7 +29,7 @@ public class Member implements Contact {
     }
 
     public void pardon() {
-        this.bot.memberBan(this.groupId, this.userId, 0);
+        this.bot.memberPardon(this.groupId, this.userId);
     }
 
     @Override
