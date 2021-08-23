@@ -1,5 +1,6 @@
 package com.zhuangxv.bot.contact.support;
 
+import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.contact.Contact;
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.message.MessageChain;
@@ -21,7 +22,12 @@ public class Member implements Contact {
     }
 
     public String getCardName() {
-        return this.bot.getMemberInfo(this.groupId, this.userId).getString("card");
+        JSONObject memberInfo = this.bot.getMemberInfo(this.groupId, this.userId);
+        String result = memberInfo.getString("card");
+        if (result == null || result.equals("")) {
+            result = memberInfo.getString("nickname");
+        }
+        return result;
     }
 
     public void ban(long duration) {
