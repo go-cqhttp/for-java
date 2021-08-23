@@ -1,4 +1,4 @@
-package com.zhuangxv.bot.message;
+package com.zhuangxv.bot.injector.object;
 
 import lombok.Data;
 

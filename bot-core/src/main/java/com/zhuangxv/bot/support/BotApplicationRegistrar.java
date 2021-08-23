@@ -6,6 +6,10 @@ import com.zhuangxv.bot.handler.message.GroupRecallEventHandler;
 import com.zhuangxv.bot.handler.message.PrivateMessageEventHandler;
 import com.zhuangxv.bot.handler.meta.HeartbeatEventHandler;
 import com.zhuangxv.bot.injector.support.*;
+import com.zhuangxv.bot.injector.support.friend.TempFriendInjector;
+import com.zhuangxv.bot.injector.support.group.GroupInjector;
+import com.zhuangxv.bot.injector.support.group.MemberInjector;
+import com.zhuangxv.bot.injector.support.group.RecallMessageInjector;
 import org.springframework.context.annotation.ImportSelector;
 import org.springframework.core.type.AnnotationMetadata;
 

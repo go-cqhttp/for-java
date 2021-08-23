@@ -24,6 +24,14 @@ public class Member implements Contact {
         return this.bot.getMemberInfo(this.groupId, this.userId).getString("card");
     }
 
+    public void ban(long duration) {
+        this.bot.memberBan(this.groupId, this.userId, duration);
+    }
+
+    public void pardon() {
+        this.bot.memberBan(this.groupId, this.userId, 0);
+    }
+
     @Override
     public int sendMessage(MessageChain messageChain) {
         if (this.bot.isFriend(this.userId)) {

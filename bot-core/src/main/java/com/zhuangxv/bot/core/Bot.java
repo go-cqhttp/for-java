@@ -142,6 +142,14 @@ public class Bot {
         this.botClient.invokeApi(new GroupBan(groupId, false));
     }
 
+    public void memberBan(long groupId, long userId, long duration) {
+        this.botClient.invokeApi(new Ban(groupId, userId, duration));
+    }
+
+    public void memberPardon(long groupId, long userId) {
+        this.botClient.invokeApi(new Ban(groupId, userId, 0));
+    }
+
     public JSONObject getMemberInfo(long groupId, long userId) {
         ApiResult apiResult = this.botClient.invokeApi(new GetMemberInfo(groupId, userId));
         return this.getObject(apiResult.getData());

@@ -1,4 +1,4 @@
-package com.zhuangxv.bot.injector.support;
+package com.zhuangxv.bot.injector.support.group;
 
 import com.zhuangxv.bot.contact.support.Member;
 import com.zhuangxv.bot.core.Bot;

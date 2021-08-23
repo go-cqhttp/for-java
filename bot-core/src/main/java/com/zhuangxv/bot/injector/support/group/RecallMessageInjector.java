@@ -1,10 +1,10 @@
-package com.zhuangxv.bot.injector.support;
+package com.zhuangxv.bot.injector.support.group;
 
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.event.message.GroupRecallEvent;
 import com.zhuangxv.bot.injector.ObjectInjector;
-import com.zhuangxv.bot.message.RecallMessage;
+import com.zhuangxv.bot.injector.object.RecallMessage;
 
 public class RecallMessageInjector implements ObjectInjector<RecallMessage> {
     @Override

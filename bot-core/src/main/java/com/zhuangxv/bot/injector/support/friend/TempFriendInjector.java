@@ -1,4 +1,4 @@
-package com.zhuangxv.bot.injector.support;
+package com.zhuangxv.bot.injector.support.friend;
 
 import com.zhuangxv.bot.contact.support.TempFriend;
 import com.zhuangxv.bot.core.Bot;
