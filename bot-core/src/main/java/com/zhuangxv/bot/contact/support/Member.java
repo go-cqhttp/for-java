@@ -30,6 +30,10 @@ public class Member implements Contact {
         return result;
     }
 
+    public void setGroupCard(String card) {
+        this.bot.setGroupCard(this.groupId, this.userId, card);
+    }
+
     public void ban(long duration) {
         this.bot.memberBan(this.groupId, this.userId, duration);
     }

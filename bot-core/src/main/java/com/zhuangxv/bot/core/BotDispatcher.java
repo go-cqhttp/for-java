@@ -28,28 +28,32 @@ public class BotDispatcher {
     }
 
     public void handle(String message, Bot bot) {
-        JSONObject jsonObject = JSON.parseObject(message);
-        if (jsonObject.containsKey("echo") && jsonObject.containsKey("status") && jsonObject.containsKey("retcode") && jsonObject.containsKey("data")) {
-            try {
-                ApiResult apiResult = JSON.parseObject(message, ApiResult.class);
-                CompletableFuture<ApiResult> completableFuture = bot.getBotClient().completableFutureMap.get(apiResult.getEcho());
-                if (completableFuture != null) {
-                    completableFuture.complete(apiResult);
+        try {
+            JSONObject jsonObject = JSON.parseObject(message);
+            if (jsonObject.containsKey("echo") && jsonObject.containsKey("status") && jsonObject.containsKey("retcode") && jsonObject.containsKey("data")) {
+                try {
+                    ApiResult apiResult = JSON.parseObject(message, ApiResult.class);
+                    CompletableFuture<ApiResult> completableFuture = bot.getBotClient().completableFutureMap.get(apiResult.getEcho());
+                    if (completableFuture != null) {
+                        completableFuture.complete(apiResult);
+                    }
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
                 }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                return;
             }
-            return;
+            this.executorService.submit(() -> {
+                try {
+                    for (EventHandler eventHandler : eventHandlerMap.values()) {
+                        eventHandler.handle(jsonObject, bot);
+                    }
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        this.executorService.submit(() -> {
-            try {
-                for (EventHandler eventHandler : eventHandlerMap.values()) {
-                    eventHandler.handle(jsonObject, bot);
-                }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        });
     }
 
 }

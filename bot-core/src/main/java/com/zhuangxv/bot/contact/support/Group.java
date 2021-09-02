@@ -4,6 +4,8 @@ import com.zhuangxv.bot.contact.Contact;
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.message.MessageChain;
 
+import java.util.List;
+
 public class Group implements Contact {
 
     private final long groupId;
@@ -39,4 +41,11 @@ public class Group implements Contact {
         return new Member(userId, this.groupId, this.bot);
     }
 
+    public List<GroupsMember> getGroupsMember() {
+        return this.bot.getGroupsMember(this.groupId);
+    }
+
+    public void setGroupSpecialTitle(long userId, String specialTitle, Number duration) {
+        this.bot.setGroupSpecialTitle(userId, specialTitle, duration, this.groupId);
+    }
 }
