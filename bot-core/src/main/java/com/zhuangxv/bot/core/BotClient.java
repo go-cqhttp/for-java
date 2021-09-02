@@ -13,6 +13,7 @@ import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.SocketAddress;
@@ -50,7 +51,8 @@ public class BotClient {
                     protected void initChannel(SocketChannel socketChannel) {
                         socketChannel.pipeline()
                                 .addLast(new HttpClientCodec())
-                                .addLast(new HttpObjectAggregator(1024 * 8))
+                                .addLast(new HttpObjectAggregator(1024 * 1024 * 100))
+                                .addLast(new WebSocketFrameAggregator(1024 * 1024 * 1024))
                                 .addLast(new WebSocketHandler(botConfig, botDispatcher, bot));
                     }
                 });

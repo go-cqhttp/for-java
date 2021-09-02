@@ -6,6 +6,8 @@ import com.zhuangxv.bot.api.ApiResult;
 import com.zhuangxv.bot.api.support.*;
 import com.zhuangxv.bot.config.BotConfig;
 import com.zhuangxv.bot.contact.support.Friend;
+import com.zhuangxv.bot.contact.support.Group;
+import com.zhuangxv.bot.contact.support.GroupsMember;
 import com.zhuangxv.bot.exception.BotException;
 import com.zhuangxv.bot.message.CacheMessage;
 import com.zhuangxv.bot.message.Message;
@@ -26,6 +28,9 @@ import java.util.stream.Collectors;
 public class Bot {
 
     private final List<Friend> friends = new ArrayList<>();
+    private final List<Group> groups = new ArrayList<>();
+    private final List<GroupsMember> groupsMembers = new ArrayList<>();
+    private final Map<Long, List<GroupsMember>> groupMembersMap = new HashMap<>();
     private final Map<String, Map<Integer, CacheMessage>> cacheMessageChain = new HashMap<>();
     private final Lock cacheMessageChainLock = new ReentrantLock();
     private final BotConfig botConfig;
@@ -115,6 +120,30 @@ public class Bot {
         log.info(String.format("[%s]刷新好友列表完成,共有好友%d个.", this.botConfig.getBotName(), this.friends.size()));
     }
 
+    public void flushGroups() {
+        log.info(String.format("[%s]正在刷新群列表.", this.botConfig.getBotName()));
+        ApiResult groupsListResult = this.botClient.invokeApi(new GetGroupsList());
+        JSONArray groupsListResultArray = this.getArray(groupsListResult.getData());
+        for (int i = 0; i < groupsListResultArray.size(); i++) {
+            List<Group> list = JSONArray.parseArray(groupsListResultArray.toJSONString(), Group.class);
+            JSONObject groupsListObject = groupsListResultArray.getJSONObject(i);
+            Group group = new Group(groupsListObject.getLong("group_id"), this);
+            this.groups.add(group);
+
+            ApiResult groupsMemberListResult = this.botClient.invokeApi(new GetGroupsMemberList(group.getGroupId()));
+            JSONArray groupsMemberListResultArray = this.getArray(groupsMemberListResult.getData());
+            this.groupsMembers.clear();
+            for (int j = 0; j < groupsMemberListResultArray.size(); j++){
+
+                JSONObject groupsMemberListObject = groupsMemberListResultArray.getJSONObject(j);
+                GroupsMember groupsMember = JSONObject.parseObject(groupsMemberListObject.toJSONString(), GroupsMember.class);
+                this.groupsMembers.add(groupsMember);
+            }
+            this.groupMembersMap.put(group.getGroupId(), new ArrayList<>(groupsMembers));
+        }
+        log.info(String.format("[%s]刷新群列表完成,共有群%d个.", this.botConfig.getBotName(), this.groups.size()));
+    }
+
     public boolean isFriend(long userId) {
         for (Friend friend : this.friends) {
             if (friend.getUserId() == userId) {
@@ -178,4 +207,15 @@ public class Bot {
         return (JSONArray) object;
     }
 
+    public void setGroupCard(long groupId, long userId, String card) {
+        this.botClient.invokeApi(new SetGroupCard(groupId, userId, card));
+    }
+
+    public List<GroupsMember> getGroupsMember(long groupId) {
+        return this.groupMembersMap.get(groupId);
+    }
+
+    public void setGroupSpecialTitle(long userId, String specialTitle, Number duration, long groupId) {
+        this.botClient.invokeApi(new SetGroupSpecialTitle(userId, specialTitle, duration, groupId));
+    }
 }

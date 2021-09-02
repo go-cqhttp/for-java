@@ -37,7 +37,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         HttpHeaders httpHeaders = new DefaultHttpHeaders();
         httpHeaders.add("Authorization", "Bearer " + this.botConfig.getAccessToken());
         this.webSocketClientHandshaker = WebSocketClientHandshakerFactory
-                .newHandshaker(new URI(this.botConfig.getWebsocketUrl()), WebSocketVersion.V13, null, false, httpHeaders);
+                .newHandshaker(new URI(this.botConfig.getWebsocketUrl()), WebSocketVersion.V13, null, false, httpHeaders, 1024 * 1024 * 1024);
         ;
         this.webSocketClientHandshaker.handshake(ctx.channel());
     }
@@ -55,6 +55,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 this.webSocketClientHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
                 log.info(String.format("[%s]Go-cqhttp connected!", this.botConfig.getBotName()));
                 new Thread(bot::flushFriends).start();
+                new Thread(bot::flushGroups).start();
             } catch (WebSocketHandshakeException e) {
                 log.error(String.format("[%s]Go-cqhttp failed to connect, Token authentication failed!", this.botConfig.getBotName()));
                 BotFactory.getApplicationContext().close();
