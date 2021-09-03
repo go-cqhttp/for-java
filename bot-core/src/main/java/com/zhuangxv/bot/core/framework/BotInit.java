@@ -1,6 +1,6 @@
-package com.zhuangxv.bot.core;
+package com.zhuangxv.bot.core.framework;
 
-import com.zhuangxv.bot.config.BotConfig;
+import com.zhuangxv.bot.core.BotFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

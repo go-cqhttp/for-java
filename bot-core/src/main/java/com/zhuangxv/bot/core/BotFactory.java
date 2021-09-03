@@ -6,6 +6,7 @@ import com.zhuangxv.bot.annotation.GroupRecallHandler;
 import com.zhuangxv.bot.annotation.TempMessageHandler;
 import com.zhuangxv.bot.config.BotConfig;
 import com.zhuangxv.bot.config.PropertySourcesUtils;
+import com.zhuangxv.bot.core.framework.HandlerMethod;
 import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.exception.BotException;
 import com.zhuangxv.bot.injector.ObjectInjector;
@@ -118,6 +119,10 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
         for (Bot bot : BotFactory.bots) {
             bot.getBotClient().connection();
         }
+    }
+
+    public static List<Bot> getBots() {
+        return bots;
     }
 
     public static Set<HandlerMethod> getHandlerMethodListByAnnotation(String botName, Predicate<? super HandlerMethod> predicate) {

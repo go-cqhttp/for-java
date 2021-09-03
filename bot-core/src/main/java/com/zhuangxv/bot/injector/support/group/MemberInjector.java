@@ -1,13 +1,13 @@
 package com.zhuangxv.bot.injector.support.group;
 
-import com.zhuangxv.bot.contact.support.Member;
+import com.zhuangxv.bot.core.Member;
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
-import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.injector.ObjectInjector;
-import com.zhuangxv.bot.message.MessageChain;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class MemberInjector implements ObjectInjector<Member> {
     @Override
     public Class<Member> getClassType() {
@@ -21,8 +21,12 @@ public class MemberInjector implements ObjectInjector<Member> {
 
     @Override
     public Member getObject(BaseEvent event, Bot bot) {
-        if (event instanceof GroupMessageEvent) {
-            return new Member(((GroupMessageEvent) event).getUserId(), ((GroupMessageEvent) event).getGroupId(), bot);
+        try {
+            if (event instanceof GroupMessageEvent) {
+                return bot.getMember(((GroupMessageEvent) event).getGroupId(), ((GroupMessageEvent) event).getUserId());
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
         return null;
     }

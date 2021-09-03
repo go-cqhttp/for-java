@@ -2,7 +2,6 @@ package com.zhuangxv.bot.handler.meta;
 
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.core.Bot;
-import com.zhuangxv.bot.core.BotFactory;
 import com.zhuangxv.bot.event.meta.HeartbeatEvent;
 import com.zhuangxv.bot.handler.EventHandler;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;

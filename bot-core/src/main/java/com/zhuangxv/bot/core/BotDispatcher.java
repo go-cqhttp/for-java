@@ -3,6 +3,7 @@ package com.zhuangxv.bot.core;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.api.ApiResult;
+import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.handler.EventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

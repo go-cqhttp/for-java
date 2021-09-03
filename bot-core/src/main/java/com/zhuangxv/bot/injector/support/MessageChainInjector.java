@@ -4,7 +4,6 @@ import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
 import com.zhuangxv.bot.event.message.GroupRecallEvent;
-import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.event.message.PrivateMessageEvent;
 import com.zhuangxv.bot.injector.ObjectInjector;
 import com.zhuangxv.bot.message.CacheMessage;

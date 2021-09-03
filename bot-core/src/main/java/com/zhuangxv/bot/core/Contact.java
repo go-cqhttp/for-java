@@ -1,4 +1,4 @@
-package com.zhuangxv.bot.contact;
+package com.zhuangxv.bot.core;
 
 import com.zhuangxv.bot.message.Message;
 import com.zhuangxv.bot.message.MessageChain;

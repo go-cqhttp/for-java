@@ -9,7 +9,7 @@ import java.util.Properties;
 
 /**
  * @author xiaoxu
- * @date 2020/10/10
+ * @since 2020/10/10
  **/
 public class PropertySourcesUtils {
 

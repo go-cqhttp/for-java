@@ -2,7 +2,6 @@ package com.zhuangxv.bot.api.support;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.zhuangxv.bot.api.BaseApi;
-import com.zhuangxv.bot.core.Bot;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,6 +1,9 @@
 package com.zhuangxv.bot.support;
 
-import com.zhuangxv.bot.core.*;
+import com.zhuangxv.bot.core.BotDispatcher;
+import com.zhuangxv.bot.core.BotFactory;
+import com.zhuangxv.bot.core.framework.BotInit;
+import com.zhuangxv.bot.core.framework.SnowFlakeIdGenerator;
 import com.zhuangxv.bot.handler.message.GroupMessageEventHandler;
 import com.zhuangxv.bot.handler.message.GroupRecallEventHandler;
 import com.zhuangxv.bot.handler.message.PrivateMessageEventHandler;
@@ -10,6 +13,7 @@ import com.zhuangxv.bot.injector.support.friend.TempFriendInjector;
 import com.zhuangxv.bot.injector.support.group.GroupInjector;
 import com.zhuangxv.bot.injector.support.group.MemberInjector;
 import com.zhuangxv.bot.injector.support.group.RecallMessageInjector;
+import com.zhuangxv.bot.scheduled.FlushCacheScheduled;
 import org.springframework.context.annotation.ImportSelector;
 import org.springframework.core.type.AnnotationMetadata;
 
@@ -38,6 +42,7 @@ public class BotApplicationRegistrar implements ImportSelector {
                 MessageIdInjector.class.getName(),
                 MessageIdIntInjector.class.getName(),
                 BotInjector.class.getName(),
+                FlushCacheScheduled.class.getName(),
         };
     }
 

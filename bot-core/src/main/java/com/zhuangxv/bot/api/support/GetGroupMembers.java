@@ -6,12 +6,12 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-public class GetGroupsMemberList extends BaseApi {
+public class GetGroupMembers extends BaseApi {
 
-    private final GetGroupsMemberList.Param param;
+    private final GetGroupMembers.Param param;
 
-    public GetGroupsMemberList(long groupId) {
-        this.param = new GetGroupsMemberList.Param();
+    public GetGroupMembers(long groupId) {
+        this.param = new GetGroupMembers.Param();
         this.param.setGroupId(groupId);
     }
 

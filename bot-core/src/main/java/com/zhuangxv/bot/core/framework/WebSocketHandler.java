@@ -1,6 +1,10 @@
-package com.zhuangxv.bot.core;
+package com.zhuangxv.bot.core.framework;
 
 import com.zhuangxv.bot.config.BotConfig;
+import com.zhuangxv.bot.core.Bot;
+import com.zhuangxv.bot.core.BotDispatcher;
+import com.zhuangxv.bot.core.BotFactory;
+import com.zhuangxv.bot.core.Group;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -37,7 +41,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
         HttpHeaders httpHeaders = new DefaultHttpHeaders();
         httpHeaders.add("Authorization", "Bearer " + this.botConfig.getAccessToken());
         this.webSocketClientHandshaker = WebSocketClientHandshakerFactory
-                .newHandshaker(new URI(this.botConfig.getWebsocketUrl()), WebSocketVersion.V13, null, false, httpHeaders, 1024 * 1024 * 1024);
+                .newHandshaker(new URI(this.botConfig.getWebsocketUrl()), WebSocketVersion.V13, null, false, httpHeaders, 1024 * 1024 * 100);
         ;
         this.webSocketClientHandshaker.handshake(ctx.channel());
     }
@@ -54,8 +58,18 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
             try {
                 this.webSocketClientHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
                 log.info(String.format("[%s]Go-cqhttp connected!", this.botConfig.getBotName()));
-                new Thread(bot::flushFriends).start();
-                new Thread(bot::flushGroups).start();
+                new Thread(() -> {
+                    try {
+                        bot.flushFriends();
+                        for (Group group : bot.flushGroups()) {
+                            bot.flushGroupMembers(group);
+                        }
+                        bot.completableFuture.complete(1L);
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                        Runtime.getRuntime().exit(0);
+                    }
+                }).start();
             } catch (WebSocketHandshakeException e) {
                 log.error(String.format("[%s]Go-cqhttp failed to connect, Token authentication failed!", this.botConfig.getBotName()));
                 BotFactory.getApplicationContext().close();

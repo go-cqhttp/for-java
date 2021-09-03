@@ -1,7 +1,5 @@
-package com.zhuangxv.bot.contact.support;
+package com.zhuangxv.bot.core;
 
-import com.zhuangxv.bot.contact.Contact;
-import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.message.MessageChain;
 
 public class TempFriend implements Contact {

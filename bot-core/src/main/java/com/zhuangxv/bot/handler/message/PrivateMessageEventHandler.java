@@ -3,10 +3,9 @@ package com.zhuangxv.bot.handler.message;
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.annotation.FriendMessageHandler;
 import com.zhuangxv.bot.annotation.TempMessageHandler;
-import com.zhuangxv.bot.contact.support.TempFriend;
+import com.zhuangxv.bot.core.TempFriend;
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.core.BotFactory;
-import com.zhuangxv.bot.core.HandlerMethod;
 import com.zhuangxv.bot.event.message.PrivateMessageEvent;
 import com.zhuangxv.bot.handler.EventHandler;
 import com.zhuangxv.bot.message.CacheMessage;
@@ -15,11 +14,8 @@ import com.zhuangxv.bot.message.MessageChain;
 import com.zhuangxv.bot.message.MessageTypeHandle;
 import com.zhuangxv.bot.util.ArrayUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class PrivateMessageEventHandler implements EventHandler {

@@ -3,20 +3,19 @@ package com.zhuangxv.bot.core;
 import com.zhuangxv.bot.api.ApiResult;
 import com.zhuangxv.bot.api.BaseApi;
 import com.zhuangxv.bot.config.BotConfig;
+import com.zhuangxv.bot.core.framework.WebSocketHandler;
 import com.zhuangxv.bot.exception.BotException;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -52,7 +51,7 @@ public class BotClient {
                         socketChannel.pipeline()
                                 .addLast(new HttpClientCodec())
                                 .addLast(new HttpObjectAggregator(1024 * 1024 * 100))
-                                .addLast(new WebSocketFrameAggregator(1024 * 1024 * 1024))
+                                .addLast(new WebSocketFrameAggregator(1024 * 1024 * 100))
                                 .addLast(new WebSocketHandler(botConfig, botDispatcher, bot));
                     }
                 });

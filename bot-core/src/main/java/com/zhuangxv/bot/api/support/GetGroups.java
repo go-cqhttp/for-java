@@ -2,7 +2,7 @@ package com.zhuangxv.bot.api.support;
 
 import com.zhuangxv.bot.api.BaseApi;
 
-public class GetGroupsList extends BaseApi {
+public class GetGroups extends BaseApi {
 
     @Override
     public String getAction() {

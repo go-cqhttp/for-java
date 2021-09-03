@@ -1,14 +1,8 @@
 package com.zhuangxv.bot.support;
 
-import com.zhuangxv.bot.config.BotConfig;
-import com.zhuangxv.bot.config.BotConfigFactory;
 import com.zhuangxv.bot.core.BotFactory;
-import com.zhuangxv.bot.util.BeanRegistryUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.boot.context.properties.bind.Bindable;
-import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.ConfigurableEnvironment;

@@ -1,23 +1,30 @@
-package com.zhuangxv.bot.contact.support;
+package com.zhuangxv.bot.core;
 
-import com.zhuangxv.bot.contact.Contact;
-import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.message.MessageChain;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@AllArgsConstructor
+@Getter
+@Slf4j
 public class Group implements Contact {
 
     private final long groupId;
+
+    private final String groupName;
+
     private final Bot bot;
 
-    public Group(long groupId, Bot bot) {
-        this.groupId = groupId;
-        this.bot = bot;
-    }
-
-    public long getGroupId() {
-        return groupId;
+    public Member getMember(long userId) {
+        try {
+            return this.bot.getMember(this.groupId, userId);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     @Override
@@ -35,14 +42,6 @@ public class Group implements Contact {
 
     public void groupPardon() {
         this.bot.groupPardon(this.groupId);
-    }
-
-    public Member getMember(long userId) {
-        return new Member(userId, this.groupId, this.bot);
-    }
-
-    public List<GroupsMember> getGroupsMember() {
-        return this.bot.getGroupsMember(this.groupId);
     }
 
     public void setGroupSpecialTitle(long userId, String specialTitle, Number duration) {

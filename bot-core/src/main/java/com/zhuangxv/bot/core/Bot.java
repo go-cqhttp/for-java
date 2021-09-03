@@ -5,20 +5,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.api.ApiResult;
 import com.zhuangxv.bot.api.support.*;
 import com.zhuangxv.bot.config.BotConfig;
-import com.zhuangxv.bot.contact.support.Friend;
-import com.zhuangxv.bot.contact.support.Group;
-import com.zhuangxv.bot.contact.support.GroupsMember;
 import com.zhuangxv.bot.exception.BotException;
 import com.zhuangxv.bot.message.CacheMessage;
-import com.zhuangxv.bot.message.Message;
 import com.zhuangxv.bot.message.MessageChain;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 /**
  * @author xiaoxu
@@ -27,12 +24,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Bot {
 
-    private final List<Friend> friends = new ArrayList<>();
-    private final List<Group> groups = new ArrayList<>();
-    private final List<GroupsMember> groupsMembers = new ArrayList<>();
-    private final Map<Long, List<GroupsMember>> groupMembersMap = new HashMap<>();
+    private final Map<Long, Friend> friends = new ConcurrentHashMap<>();
+    private final Map<Long, Group> groups = new ConcurrentHashMap<>();
+    private final Map<Long, Map<Long, Member>> groupMembers = new ConcurrentHashMap<>();
     private final Map<String, Map<Integer, CacheMessage>> cacheMessageChain = new HashMap<>();
     private final Lock cacheMessageChainLock = new ReentrantLock();
+    public final CompletableFuture<Long> completableFuture = new CompletableFuture<>();
     private final BotConfig botConfig;
     private final BotClient botClient;
 
@@ -112,45 +109,138 @@ public class Bot {
         JSONArray resultArray = this.getArray(apiResult.getData());
         for (int i = 0; i < resultArray.size(); i++) {
             JSONObject resultObject = resultArray.getJSONObject(i);
-            Friend friend = new Friend(resultObject.getLong("user_id"), this);
-            friend.setNickname(resultObject.getString("nickname"));
-            friend.setRemark(resultObject.getString("remark"));
-            this.friends.add(friend);
+            long userId = resultObject.getLongValue("user_id");
+            String nickname = resultObject.getString("nickname");
+            String remark = resultObject.getString("remark");
+            this.friends.put(userId, new Friend(userId, nickname, remark, this));
         }
         log.info(String.format("[%s]刷新好友列表完成,共有好友%d个.", this.botConfig.getBotName(), this.friends.size()));
     }
 
-    public void flushGroups() {
+    public Collection<Group> flushGroups() {
         log.info(String.format("[%s]正在刷新群列表.", this.botConfig.getBotName()));
-        ApiResult groupsListResult = this.botClient.invokeApi(new GetGroupsList());
-        JSONArray groupsListResultArray = this.getArray(groupsListResult.getData());
-        for (int i = 0; i < groupsListResultArray.size(); i++) {
-            List<Group> list = JSONArray.parseArray(groupsListResultArray.toJSONString(), Group.class);
-            JSONObject groupsListObject = groupsListResultArray.getJSONObject(i);
-            Group group = new Group(groupsListObject.getLong("group_id"), this);
-            this.groups.add(group);
-
-            ApiResult groupsMemberListResult = this.botClient.invokeApi(new GetGroupsMemberList(group.getGroupId()));
-            JSONArray groupsMemberListResultArray = this.getArray(groupsMemberListResult.getData());
-            this.groupsMembers.clear();
-            for (int j = 0; j < groupsMemberListResultArray.size(); j++){
-
-                JSONObject groupsMemberListObject = groupsMemberListResultArray.getJSONObject(j);
-                GroupsMember groupsMember = JSONObject.parseObject(groupsMemberListObject.toJSONString(), GroupsMember.class);
-                this.groupsMembers.add(groupsMember);
-            }
-            this.groupMembersMap.put(group.getGroupId(), new ArrayList<>(groupsMembers));
+        ApiResult apiResult = this.botClient.invokeApi(new GetGroups());
+        JSONArray resultArray = this.getArray(apiResult.getData());
+        for (int i = 0; i < resultArray.size(); i++) {
+            JSONObject resultObject = resultArray.getJSONObject(i);
+            long groupId = resultObject.getLongValue("group_id");
+            String groupName = resultObject.getString("group_name");
+            this.groups.put(groupId, new Group(groupId, groupName, this));
         }
         log.info(String.format("[%s]刷新群列表完成,共有群%d个.", this.botConfig.getBotName(), this.groups.size()));
+        return this.groups.values();
     }
 
-    public boolean isFriend(long userId) {
-        for (Friend friend : this.friends) {
-            if (friend.getUserId() == userId) {
-                return true;
-            }
+    public void flushGroupMembers(Group group) {
+        ApiResult apiResult = this.botClient.invokeApi(new GetGroupMembers(group.getGroupId()));
+        JSONArray resultArray = this.getArray(apiResult.getData());
+        Map<Long, Member> members = this.groupMembers.computeIfAbsent(group.getGroupId(), key -> new ConcurrentHashMap<>());
+        for (int i = 0; i < resultArray.size(); i++) {
+            JSONObject resultObject = resultArray.getJSONObject(i);
+            long userId = resultObject.getLongValue("user_id");
+            String nickname = resultObject.getString("nickname");
+            String card = resultObject.getString("card");
+            String sex = resultObject.getString("sex");
+            int age = resultObject.getIntValue("age");
+            String area = resultObject.getString("area");
+            Date joinTime = resultObject.getDate("join_time");
+            Date lastSentTime = resultObject.getDate("last_sent_time");
+            String level = resultObject.getString("level");
+            String role = resultObject.getString("role");
+            boolean unfriendly = resultObject.getBoolean("unfriendly");
+            String title = resultObject.getString("title");
+            Date titleExpireTime = resultObject.getDate("title_expire_time");
+            boolean cardChangeable = resultObject.getBoolean("card_changeable");
+            members.put(userId, new Member(userId, group.getGroupId(), nickname, card, sex, age, area, joinTime, lastSentTime, level, role, unfriendly, title, titleExpireTime, cardChangeable, this));
         }
-        return false;
+        log.info(String.format("[%s]刷新群%s的成员列表完成,共有群成员%d个", this.botConfig.getBotName(), group.getGroupName(), members.size()));
+    }
+
+    public boolean isFriend(long userId) throws InterruptedException, ExecutionException {
+        if (!this.completableFuture.isDone()) {
+            this.completableFuture.get();
+        }
+        return this.friends.containsKey(userId);
+    }
+
+    public Friend getFriend(long userId) {
+        try {
+            if (!this.completableFuture.isDone()) {
+                this.completableFuture.get();
+            }
+            return this.friends.get(userId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Collection<Friend> getFriends() {
+        try {
+            if (!this.completableFuture.isDone()) {
+                this.completableFuture.get();
+            }
+            return this.friends.values();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Group getGroup(long groupId) {
+        try {
+            if (!this.completableFuture.isDone()) {
+                this.completableFuture.get();
+            }
+            return this.groups.get(groupId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Collection<Group> getGroups() {
+        try {
+            if (!this.completableFuture.isDone()) {
+                this.completableFuture.get();
+            }
+            return this.groups.values();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Member getMember(long groupId, long userId) {
+        try {
+            if (!this.completableFuture.isDone()) {
+                this.completableFuture.get();
+            }
+            return this.groupMembers.get(groupId).get(userId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public Collection<Member> getMembers(long groupId) {
+        try {
+            if (!this.completableFuture.isDone()) {
+                this.completableFuture.get();
+            }
+            return this.groupMembers.get(groupId).values();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private JSONObject getObject(Object object) {
+        if (!(object instanceof JSONObject)) {
+            throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botConfig.getBotName()));
+        }
+        return (JSONObject) object;
+    }
+
+    private JSONArray getArray(Object object) {
+        if (!(object instanceof JSONArray)) {
+            throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botConfig.getBotName()));
+        }
+        return (JSONArray) object;
     }
 
     public int sendGroupMessage(long groupId, MessageChain messageChain) {
@@ -193,26 +283,8 @@ public class Bot {
         this.botClient.invokeApi(new DeleteMsg(messageId));
     }
 
-    private JSONObject getObject(Object object) {
-        if (!(object instanceof JSONObject)) {
-            throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botConfig.getBotName()));
-        }
-        return (JSONObject) object;
-    }
-
-    private JSONArray getArray(Object object) {
-        if (!(object instanceof JSONArray)) {
-            throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botConfig.getBotName()));
-        }
-        return (JSONArray) object;
-    }
-
     public void setGroupCard(long groupId, long userId, String card) {
         this.botClient.invokeApi(new SetGroupCard(groupId, userId, card));
-    }
-
-    public List<GroupsMember> getGroupsMember(long groupId) {
-        return this.groupMembersMap.get(groupId);
     }
 
     public void setGroupSpecialTitle(long userId, String specialTitle, Number duration, long groupId) {

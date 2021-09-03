@@ -1,9 +1,9 @@
 package com.zhuangxv.bot.api;
 
 import com.alibaba.fastjson.JSON;
-import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.core.BotFactory;
-import com.zhuangxv.bot.core.IdGenerator;
+import com.zhuangxv.bot.core.framework.IdGenerator;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public abstract class BaseApi {
     public String getEcho() {
         if (StringUtils.isEmpty(echo)) {
             IdGenerator idGenerator = BotFactory.getBeanByClass(IdGenerator.class);
-            assert idGenerator != null;
+            Assert.notNull(idGenerator, "IdGenerator can not be null.");
             this.echo = idGenerator.createStrId();
         }
         return this.echo;

@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.zhuangxv.bot.api.BaseApi;
-import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.message.MessageChain;
 import lombok.AccessLevel;
 import lombok.Data;

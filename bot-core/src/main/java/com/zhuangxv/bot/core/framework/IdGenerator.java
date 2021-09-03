@@ -1,4 +1,4 @@
-package com.zhuangxv.bot.core;
+package com.zhuangxv.bot.core.framework;
 
 /**
  * @author xiaoxu

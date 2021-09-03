@@ -1,12 +1,10 @@
 package com.zhuangxv.bot.injector.support.friend;
 
-import com.zhuangxv.bot.contact.support.TempFriend;
+import com.zhuangxv.bot.core.TempFriend;
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.event.BaseEvent;
-import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.event.message.PrivateMessageEvent;
 import com.zhuangxv.bot.injector.ObjectInjector;
-import com.zhuangxv.bot.message.MessageChain;
 
 public class TempFriendInjector implements ObjectInjector<TempFriend> {
     @Override

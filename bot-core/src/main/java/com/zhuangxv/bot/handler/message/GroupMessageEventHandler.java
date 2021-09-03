@@ -2,7 +2,7 @@ package com.zhuangxv.bot.handler.message;
 
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.annotation.GroupMessageHandler;
-import com.zhuangxv.bot.contact.support.Group;
+import com.zhuangxv.bot.core.Group;
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.core.BotFactory;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
@@ -57,11 +57,15 @@ public class GroupMessageEventHandler implements EventHandler {
             return groupMessageHandler.regex().equals("none") || messageChain.toString().matches(groupMessageHandler.regex());
         }, "message");
         for (Object result : resultList) {
-            if (result instanceof Message) {
-                new Group(groupMessageEvent.getGroupId(), bot).sendMessage((Message) result);
-            }
-            if (result instanceof MessageChain) {
-                new Group(groupMessageEvent.getGroupId(), bot).sendMessage((MessageChain) result);
+            try {
+                if (result instanceof Message) {
+                    bot.getGroup(groupMessageEvent.getGroupId()).sendMessage((Message) result);
+                }
+                if (result instanceof MessageChain) {
+                    bot.getGroup(groupMessageEvent.getGroupId()).sendMessage((MessageChain) result);
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
             }
         }
     }

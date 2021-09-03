@@ -1,7 +1,6 @@
 package com.zhuangxv.bot.api.support;
 
 import com.zhuangxv.bot.api.BaseApi;
-import com.zhuangxv.bot.core.Bot;
 
 public class GetFriends extends BaseApi {
 
