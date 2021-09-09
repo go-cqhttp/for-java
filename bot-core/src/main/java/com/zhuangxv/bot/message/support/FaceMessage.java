@@ -9,6 +9,10 @@ public class FaceMessage implements Message {
 
     private String id;
 
+    public FaceMessage(String id) {
+        this.id = id;
+    }
+
     @Override
     public String toString() {
         return "face[" + id + "]";

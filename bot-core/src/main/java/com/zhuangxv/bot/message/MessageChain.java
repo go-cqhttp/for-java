@@ -46,6 +46,10 @@ public class MessageChain extends ArrayList<Message> {
         this.add(new RecordMessage(file));
         return this;
     }
+    public MessageChain face(String id) {
+        this.add(new FaceMessage(id));
+        return this;
+    }
 
     public MessageChain copy() {
         MessageChain messageChain = new MessageChain();
