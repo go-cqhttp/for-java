@@ -2,7 +2,6 @@ package com.zhuangxv.bot.handler.message;
 
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.annotation.GroupMessageHandler;
-import com.zhuangxv.bot.core.Group;
 import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.core.BotFactory;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
@@ -12,6 +11,7 @@ import com.zhuangxv.bot.message.Message;
 import com.zhuangxv.bot.message.MessageChain;
 import com.zhuangxv.bot.message.MessageTypeHandle;
 import com.zhuangxv.bot.util.ArrayUtils;
+import com.zhuangxv.bot.utilEnum.IgnoreItselfEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +42,11 @@ public class GroupMessageEventHandler implements EventHandler {
                 return false;
             }
             GroupMessageHandler groupMessageHandler = handlerMethod.getMethod().getAnnotation(GroupMessageHandler.class);
+            if (groupMessageHandler.ignoreItself().equals(IgnoreItselfEnum.IGNORE_ITSELF) && "message_sent".equals(groupMessageEvent.getEventType())) {
+                return false;
+            } else if (groupMessageHandler.ignoreItself().equals(IgnoreItselfEnum.ONLY_ITSELF) && !"message_sent".equals(groupMessageEvent.getEventType())){
+                return false;
+            }
             if (groupMessageHandler.groupIds().length > 0 && !ArrayUtils.contain(groupMessageHandler.groupIds(), groupMessageEvent.getGroupId())) {
                 return false;
             }
@@ -54,7 +59,7 @@ public class GroupMessageEventHandler implements EventHandler {
             if (ArrayUtils.contain(groupMessageHandler.excludeSenderIds(), groupMessageEvent.getUserId())) {
                 return false;
             }
-            return groupMessageHandler.regex().equals("none") || messageChain.toString().matches(groupMessageHandler.regex());
+            return "none".equals(groupMessageHandler.regex()) || messageChain.toString().matches(groupMessageHandler.regex());
         }, "message");
         for (Object result : resultList) {
             try {

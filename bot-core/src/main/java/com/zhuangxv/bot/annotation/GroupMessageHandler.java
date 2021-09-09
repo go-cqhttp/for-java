@@ -1,5 +1,7 @@
 package com.zhuangxv.bot.annotation;
 
+import com.zhuangxv.bot.utilEnum.IgnoreItselfEnum;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
@@ -36,5 +38,10 @@ public @interface GroupMessageHandler {
      * 是否被@
      */
     boolean isAt() default false;
+
+    /**
+     * 忽略自身
+     */
+    IgnoreItselfEnum ignoreItself() default IgnoreItselfEnum.IGNORE_ITSELF;
 
 }
