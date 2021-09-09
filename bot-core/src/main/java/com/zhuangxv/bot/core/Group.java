@@ -1,6 +1,7 @@
 package com.zhuangxv.bot.core;
 
 import com.zhuangxv.bot.message.MessageChain;
+import com.zhuangxv.bot.message.support.ForwardNodeMessage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,10 @@ public class Group implements Contact {
 
     public int sendTempMessage(long userId, MessageChain messageChain) {
         return this.getMember(userId).sendMessage(messageChain);
+    }
+
+    public int sendGroupForwardMessage(List<ForwardNodeMessage> messageList) {
+        return this.bot.sendGroupForwardMessage(this.groupId, messageList);
     }
 
     public void groupBan() {
