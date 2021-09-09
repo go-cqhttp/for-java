@@ -8,6 +8,7 @@ import com.zhuangxv.bot.config.BotConfig;
 import com.zhuangxv.bot.exception.BotException;
 import com.zhuangxv.bot.message.CacheMessage;
 import com.zhuangxv.bot.message.MessageChain;
+import com.zhuangxv.bot.message.support.ForwardNodeMessage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -245,6 +246,11 @@ public class Bot {
 
     public int sendGroupMessage(long groupId, MessageChain messageChain) {
         ApiResult apiResult = this.botClient.invokeApi(new SendGroupMsg(groupId, messageChain));
+        return this.getObject(apiResult.getData()).getIntValue("message_id");
+    }
+
+    public int sendGroupForwardMessage(long groupId, List<ForwardNodeMessage> messageList) {
+        ApiResult apiResult = this.botClient.invokeApi(new SendGroupForwardMsg(groupId, messageList));
         return this.getObject(apiResult.getData()).getIntValue("message_id");
     }
 
