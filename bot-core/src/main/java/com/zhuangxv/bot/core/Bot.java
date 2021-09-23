@@ -191,7 +191,16 @@ public class Bot {
             if (!this.completableFuture.isDone()) {
                 this.completableFuture.get();
             }
-            return this.groups.get(groupId);
+            Group group = this.groups.get(groupId);
+            if (group == null) {
+                ApiResult apiResult = this.botClient.invokeApi(new GetGroup(groupId));
+                JSONObject resultObject = this.getObject(apiResult.getData());
+                String groupName = resultObject.getString("group_name");
+                group = new Group(groupId, groupName, this);
+                this.groups.put(groupId, group);
+                return group;
+            }
+            return group;
         } catch (Exception e) {
             return null;
         }
@@ -213,7 +222,32 @@ public class Bot {
             if (!this.completableFuture.isDone()) {
                 this.completableFuture.get();
             }
-            return this.groupMembers.get(groupId).get(userId);
+            Map<Long, Member> groupMembers = this.groupMembers.get(groupId);
+            if (groupMembers.isEmpty()) {
+                this.flushGroupMembers(this.getGroup(groupId));
+                groupMembers = this.groupMembers.get(groupId);
+            }
+            Member member = groupMembers.get(userId);
+            if (member == null) {
+                ApiResult apiResult = this.botClient.invokeApi(new GetMemberInfo(groupId, userId));
+                JSONObject resultObject = this.getObject(apiResult.getData());
+                String nickname = resultObject.getString("nickname");
+                String card = resultObject.getString("card");
+                String sex = resultObject.getString("sex");
+                int age = resultObject.getIntValue("age");
+                String area = resultObject.getString("area");
+                Date joinTime = resultObject.getDate("join_time");
+                Date lastSentTime = resultObject.getDate("last_sent_time");
+                String level = resultObject.getString("level");
+                String role = resultObject.getString("role");
+                boolean unfriendly = resultObject.getBoolean("unfriendly");
+                String title = resultObject.getString("title");
+                Date titleExpireTime = resultObject.getDate("title_expire_time");
+                boolean cardChangeable = resultObject.getBoolean("card_changeable");
+                member = new Member(userId, groupId, nickname, card, sex, age, area, joinTime, lastSentTime, level, role, unfriendly, title, titleExpireTime, cardChangeable, this);
+                groupMembers.put(userId, member);
+            }
+            return member;
         } catch (Exception e) {
             return null;
         }
@@ -224,7 +258,12 @@ public class Bot {
             if (!this.completableFuture.isDone()) {
                 this.completableFuture.get();
             }
-            return this.groupMembers.get(groupId).values();
+            Map<Long, Member> groupMembers = this.groupMembers.get(groupId);
+            if (groupMembers.isEmpty()) {
+                this.flushGroupMembers(this.getGroup(groupId));
+                groupMembers = this.groupMembers.get(groupId);
+            }
+            return groupMembers.values();
         } catch (Exception e) {
             return null;
         }
@@ -273,11 +312,6 @@ public class Bot {
 
     public void memberPardon(long groupId, long userId) {
         this.botClient.invokeApi(new Ban(groupId, userId, 0));
-    }
-
-    public JSONObject getMemberInfo(long groupId, long userId) {
-        ApiResult apiResult = this.botClient.invokeApi(new GetMemberInfo(groupId, userId));
-        return this.getObject(apiResult.getData());
     }
 
     public int sendPrivateMessage(long userId, MessageChain messageChain) {
