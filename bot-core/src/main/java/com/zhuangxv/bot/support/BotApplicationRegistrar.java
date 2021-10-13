@@ -9,6 +9,7 @@ import com.zhuangxv.bot.handler.message.GroupRecallEventHandler;
 import com.zhuangxv.bot.handler.message.PrivateMessageEventHandler;
 import com.zhuangxv.bot.handler.meta.HeartbeatEventHandler;
 import com.zhuangxv.bot.injector.support.*;
+import com.zhuangxv.bot.injector.support.friend.FriendInjector;
 import com.zhuangxv.bot.injector.support.friend.TempFriendInjector;
 import com.zhuangxv.bot.injector.support.group.GroupInjector;
 import com.zhuangxv.bot.injector.support.group.MemberInjector;
@@ -43,6 +44,7 @@ public class BotApplicationRegistrar implements ImportSelector {
                 MessageIdIntInjector.class.getName(),
                 BotInjector.class.getName(),
                 FlushCacheScheduled.class.getName(),
+                FriendInjector.class.getName(),
         };
     }
 
