@@ -10,12 +10,14 @@ import com.zhuangxv.bot.message.CacheMessage;
 import com.zhuangxv.bot.message.Message;
 import com.zhuangxv.bot.message.MessageChain;
 import com.zhuangxv.bot.message.MessageTypeHandle;
+import com.zhuangxv.bot.message.support.AtMessage;
 import com.zhuangxv.bot.util.ArrayUtils;
 import com.zhuangxv.bot.utilEnum.IgnoreItselfEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -58,6 +60,17 @@ public class GroupMessageEventHandler implements EventHandler {
             }
             if (ArrayUtils.contain(groupMessageHandler.excludeSenderIds(), groupMessageEvent.getUserId())) {
                 return false;
+            }
+            if (groupMessageHandler.isAt()) {
+                List<Long> atList = new ArrayList<>();
+                messageChain.forEach(message -> {
+                    if (message instanceof AtMessage) {
+                        atList.add(Long.valueOf(((AtMessage) message).getQq()));
+                    }
+                });
+                if (atList.isEmpty() || !atList.contains(groupMessageEvent.getSelfId())) {
+                    return false;
+                }
             }
             return "none".equals(groupMessageHandler.regex()) || messageChain.toString().matches(groupMessageHandler.regex());
         }, "message");

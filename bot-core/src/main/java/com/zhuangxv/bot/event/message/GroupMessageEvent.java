@@ -15,6 +15,9 @@ public class GroupMessageEvent extends MessageEvent {
     @JSONField(name = "sub_type")
     private String subType;
 
+    @JSONField(name = "self_id")
+    private Long selfId;
+
     @JSONField(name = "group_id")
     private Long groupId;
 
