@@ -1,5 +1,6 @@
 package com.zhuangxv.bot.handler.message;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.annotation.GroupMessageHandler;
 import com.zhuangxv.bot.core.Bot;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -49,6 +51,13 @@ public class GroupMessageEventHandler implements EventHandler {
             }
             if (groupMessageHandler.groupIds().length > 0 && !ArrayUtils.contain(groupMessageHandler.groupIds(), groupMessageEvent.getGroupId())) {
                 return false;
+            }
+            if (groupMessageHandler.isAt()){
+                JSONArray jsonArray = groupMessageEvent.getMessage();
+                List<String> typeArr = jsonArray.stream().map(o -> (String)((JSONObject) o).get("type")).collect(Collectors.toList());
+                if (!typeArr.contains("at")){
+                    return false;
+                }
             }
             if (ArrayUtils.contain(groupMessageHandler.excludeGroupIds(), groupMessageEvent.getGroupId())) {
                 return false;
