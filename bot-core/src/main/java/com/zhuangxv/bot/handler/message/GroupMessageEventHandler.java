@@ -62,12 +62,13 @@ public class GroupMessageEventHandler implements EventHandler {
                 return false;
             }
             if (groupMessageHandler.isAt()) {
+                boolean isAt = false;
                 for (Message message : messageChain) {
                     if (message instanceof AtMessage && Long.parseLong(((AtMessage) message).getQq()) == groupMessageEvent.getSelfId()) {
-                        return true;
+                        isAt = true;
                     }
                 }
-                return false;
+                if (!isAt) return false;
             }
             return "none".equals(groupMessageHandler.regex()) || messageChain.toString().matches(groupMessageHandler.regex());
         }, "message");
