@@ -62,15 +62,12 @@ public class GroupMessageEventHandler implements EventHandler {
                 return false;
             }
             if (groupMessageHandler.isAt()) {
-                List<Long> atList = new ArrayList<>();
-                messageChain.forEach(message -> {
-                    if (message instanceof AtMessage) {
-                        atList.add(Long.valueOf(((AtMessage) message).getQq()));
+                for (Message message : messageChain) {
+                    if (message instanceof AtMessage && Long.parseLong(((AtMessage) message).getQq()) == groupMessageEvent.getSelfId()) {
+                        return true;
                     }
-                });
-                if (atList.isEmpty() || !atList.contains(groupMessageEvent.getSelfId())) {
-                    return false;
                 }
+                return false;
             }
             return "none".equals(groupMessageHandler.regex()) || messageChain.toString().matches(groupMessageHandler.regex());
         }, "message");

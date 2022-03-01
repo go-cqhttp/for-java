@@ -157,6 +157,7 @@ public class Bot {
         log.info(String.format("[%s]刷新群%s的成员列表完成,共有群成员%d个", this.botConfig.getBotName(), group.getGroupName(), members.size()));
     }
 
+
     public boolean isFriend(long userId) throws InterruptedException, ExecutionException {
         if (!this.completableFuture.isDone()) {
             this.completableFuture.get();
@@ -169,7 +170,20 @@ public class Bot {
             if (!this.completableFuture.isDone()) {
                 this.completableFuture.get();
             }
-            return this.friends.get(userId);
+            Friend friend = this.friends.get(userId);
+            if (friend == null) {
+                ApiResult apiResult = this.botClient.invokeApi(new GetFriends());
+                JSONArray resultArray = this.getArray(apiResult.getData());
+                for (int i = 0; i < resultArray.size(); i++) {
+                    JSONObject resultObject = resultArray.getJSONObject(i);
+                    long userIdTemp = resultObject.getLongValue("user_id");
+                    String nickname = resultObject.getString("nickname");
+                    String remark = resultObject.getString("remark");
+                    this.friends.put(userIdTemp, new Friend(userIdTemp, nickname, remark, this));
+                }
+                friend = this.friends.get(userId);
+            }
+            return friend;
         } catch (Exception e) {
             return null;
         }
