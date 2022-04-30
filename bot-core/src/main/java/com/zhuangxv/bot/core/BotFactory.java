@@ -1,9 +1,6 @@
 package com.zhuangxv.bot.core;
 
-import com.zhuangxv.bot.annotation.FriendMessageHandler;
-import com.zhuangxv.bot.annotation.GroupMessageHandler;
-import com.zhuangxv.bot.annotation.GroupRecallHandler;
-import com.zhuangxv.bot.annotation.TempMessageHandler;
+import com.zhuangxv.bot.annotation.*;
 import com.zhuangxv.bot.config.BotConfig;
 import com.zhuangxv.bot.config.PropertySourcesUtils;
 import com.zhuangxv.bot.core.framework.HandlerMethod;
@@ -65,6 +62,7 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
                             || method.isAnnotationPresent(TempMessageHandler.class)
                             || method.isAnnotationPresent(FriendMessageHandler.class)
                             || method.isAnnotationPresent(GroupRecallHandler.class)
+                            || method.isAnnotationPresent(GroupUserAddHandler.class)
             ).collect(Collectors.toSet());
             methodSet.forEach(method -> {
                 HandlerMethod handlerMethod = new HandlerMethod() {

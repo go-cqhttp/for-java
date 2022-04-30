@@ -119,3 +119,20 @@ bot:
 * String 被撤回的消息的字符串形式
 * Integer/int 被撤回的消息id
 * RecallMessage 包含撤回该消息的操作人以及被撤回消息的发送人id
+
+---
+
+### @GroupUserAddHandler
+> 有用户入群时执行该方法
+
+注解参数列表
+
+* groupIds 验证撤回消息的群号是否为当前值的内容，默认为0即不限制
+* excludeGroupIds 验证撤回消息的群号是否非当前值的内容，默认为0即不限制
+* senderIds 验证撤回消息的操作人是否为当前值的内容，默认为0即不限制
+* excludeSenderIds 验证撤回消息的操作人是否非当前值的内容，默认为0即不限制
+
+可注入到方法中的属性
+
+* Group 被撤回的消息所在的群实例
+* UserAddMessage 包含操作管理员以及入群用户的id
