@@ -16,6 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,7 +57,7 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
         Map<String, Object> beans = BotFactory.getApplicationContext().getBeansOfType(Object.class);
         handlerMethodMap = new HashMap<>();
         for (Object bean : beans.values()) {
-            Class<?> beanClass = bean.getClass();
+            Class<?> beanClass = ClassUtils.getUserClass(bean);
             Set<Method> methodSet = Arrays.stream(beanClass.getMethods()).filter(method ->
                     method.isAnnotationPresent(GroupMessageHandler.class)
                             || method.isAnnotationPresent(TempMessageHandler.class)
