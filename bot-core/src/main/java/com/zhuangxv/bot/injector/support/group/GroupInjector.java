@@ -5,6 +5,7 @@ import com.zhuangxv.bot.core.Bot;
 import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
 import com.zhuangxv.bot.event.message.GroupRecallEvent;
+import com.zhuangxv.bot.event.message.GroupUserAddEvent;
 import com.zhuangxv.bot.injector.ObjectInjector;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +18,7 @@ public class GroupInjector implements ObjectInjector<Group> {
 
     @Override
     public String[] getType() {
-        return new String[]{"message", "recallMessage"};
+        return new String[]{"message", "recallMessage","userAddMessage"};
     }
 
     @Override
@@ -28,6 +29,9 @@ public class GroupInjector implements ObjectInjector<Group> {
             }
             if (event instanceof GroupRecallEvent) {
                 return bot.getGroup(((GroupRecallEvent) event).getGroupId());
+            }
+            if (event instanceof GroupUserAddEvent) {
+                return bot.getGroup(((GroupUserAddEvent) event).getGroupId());
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
