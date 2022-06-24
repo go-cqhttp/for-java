@@ -6,6 +6,10 @@ import com.zhuangxv.bot.message.support.*;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public class MessageChain extends ArrayList<Message> {
 
     @Override

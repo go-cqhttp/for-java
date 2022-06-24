@@ -12,6 +12,10 @@ import com.zhuangxv.bot.message.MessageTypeHandle;
 
 import java.util.List;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public class MessageStringInjector implements ObjectInjector<String> {
     @Override
     public Class<String> getClassType() {

@@ -7,10 +7,10 @@ import lombok.Data;
 public class BaseEvent {
 
     @JSONField(name = "post_type")
-    private String eventType;
+    private String postType;
 
     @JSONField(name = "self_id")
-    private Long botQq;
+    private Long selfId;
 
     @JSONField(name = "time")
     private Long time;

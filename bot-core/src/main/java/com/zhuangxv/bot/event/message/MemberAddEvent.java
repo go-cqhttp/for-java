@@ -7,10 +7,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class GroupUserAddEvent extends BaseEvent {
+public class MemberAddEvent extends BaseEvent {
 
     @JSONField(name = "notice_type")
     private String noticeType;
@@ -20,10 +24,6 @@ public class GroupUserAddEvent extends BaseEvent {
 
     @JSONField(name = "user_id")
     private Long userId;
-
-    @JSONField(name = "operator_id")
-    private Long operatorId;
-
 
     public static boolean isSupport(JSONObject jsonObject) {
         return ("notice".equals(jsonObject.getString("post_type"))

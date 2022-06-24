@@ -8,7 +8,7 @@ import java.lang.annotation.*;
 
 /**
  * @author xiaoxu
- * @date 2020-08-07 10:43
+ * @since 2020-08-07 10:43
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

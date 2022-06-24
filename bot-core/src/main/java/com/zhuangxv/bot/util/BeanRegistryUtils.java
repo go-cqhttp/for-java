@@ -11,6 +11,7 @@ import java.util.Arrays;
 
 /**
  * @author xiaoxu
+ * @since 2022-05-24 10:19
  */
 @Slf4j
 public class BeanRegistryUtils {
