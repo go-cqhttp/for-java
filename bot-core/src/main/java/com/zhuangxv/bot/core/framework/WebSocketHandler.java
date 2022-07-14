@@ -39,7 +39,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws URISyntaxException {
         HttpHeaders httpHeaders = new DefaultHttpHeaders();
-        httpHeaders.add("Authorization", "Bearer " + this.botConfig.getAccessToken());
+        if (this.botConfig.getAccessToken() != null && this.botConfig.getAccessToken().trim().length() > 0) {
+            httpHeaders.add("Authorization", "Bearer " + this.botConfig.getAccessToken());
+        }
         this.webSocketClientHandshaker = WebSocketClientHandshakerFactory
                 .newHandshaker(new URI(this.botConfig.getWebsocketUrl()), WebSocketVersion.V13, null, false, httpHeaders, 1024 * 1024 * 100);
         ;
