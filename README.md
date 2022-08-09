@@ -1,4 +1,4 @@
-# go-cqhttp/java
+**# go-cqhttp/java
 
 > 基于 go-cqhttp 和 java 的 qq 机器人
 
@@ -135,4 +135,4 @@ bot:
 可注入到方法中的属性
 
 * Group 被撤回的消息所在的群实例
-* UserAddMessage 包含操作管理员以及入群用户的id
+* UserAddMessage 包含操作管理员以及入群用户的id**

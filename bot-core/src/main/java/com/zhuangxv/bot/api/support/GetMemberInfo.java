@@ -38,11 +38,6 @@ public class GetMemberInfo extends BaseApi {
         return param;
     }
 
-    @Override
-    public boolean needSleep() {
-        return false;
-    }
-
     @Data
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Param {

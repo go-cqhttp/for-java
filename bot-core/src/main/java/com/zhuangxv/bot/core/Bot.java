@@ -137,7 +137,7 @@ public class Bot {
     }
 
     public void flushFriends() {
-        log.info(String.format("[%s]正在刷新好友列表.", this.botName));
+        log.debug(String.format("[%s]正在刷新好友列表.", this.botName));
         ApiResult apiResult = this.botClient.invokeApi(new GetFriends(), this);
         JSONArray resultArray = this.getArray(apiResult.getData());
         for (int i = 0; i < resultArray.size(); i++) {
@@ -147,11 +147,11 @@ public class Bot {
             String remark = resultObject.getString("remark");
             this.friends.put(userId, new Friend(userId, nickname, remark, this));
         }
-        log.info(String.format("[%s]刷新好友列表完成,共有好友%d个.", this.botName, this.friends.size()));
+        log.debug(String.format("[%s]刷新好友列表完成,共有好友%d个.", this.botName, this.friends.size()));
     }
 
     public Collection<Group> flushGroups() {
-        log.info(String.format("[%s]正在刷新群列表.", this.botName));
+        log.debug(String.format("[%s]正在刷新群列表.", this.botName));
         ApiResult apiResult = this.botClient.invokeApi(new GetGroups(), this);
         JSONArray resultArray = this.getArray(apiResult.getData());
         for (int i = 0; i < resultArray.size(); i++) {
@@ -160,7 +160,7 @@ public class Bot {
             String groupName = resultObject.getString("group_name");
             this.groups.put(groupId, new Group(groupId, groupName, this));
         }
-        log.info(String.format("[%s]刷新群列表完成,共有群%d个.", this.botName, this.groups.size()));
+        log.debug(String.format("[%s]刷新群列表完成,共有群%d个.", this.botName, this.groups.size()));
         return this.groups.values();
     }
 
@@ -186,7 +186,7 @@ public class Bot {
             boolean cardChangeable = resultObject.getBoolean("card_changeable");
             members.put(userId, new Member(userId, group.getGroupId(), nickname, card, sex, age, area, joinTime, lastSentTime, level, role, unfriendly, title, titleExpireTime, cardChangeable, this));
         }
-        log.info(String.format("[%s]刷新群%s的成员列表完成,共有群成员%d个", this.botName, group.getGroupName(), members.size()));
+        log.debug(String.format("[%s]刷新群%s的成员列表完成,共有群成员%d个", this.botName, group.getGroupName(), members.size()));
     }
 
 

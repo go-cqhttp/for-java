@@ -94,12 +94,14 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
     }
 
     public static void initBot() {
+        BotDispatcher botDispatcher = BotFactory.getBeanByClass(BotDispatcher.class);
+        if (botDispatcher == null) {
+            throw new BotException("BotDispatcher初始化失败");
+        }
         String configKey = "bot";
-        List<BotConfig> botConfigs;
-        if (PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey).size() == 0
-                && PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey + "[0]").size() == 0) {
-            throw new BotException("配置不存在");
-        } else {
+        List<BotConfig> botConfigs = null;
+        if (PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey).size() != 0
+                || PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey + "[0]").size() != 0) {
             Binder binder = Binder.get(BotFactory.environment);
             if (PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey + "[0]").size() > 0) {
                 botConfigs = binder.bind(configKey, Bindable.listOf(BotConfig.class)).get();
@@ -108,14 +110,10 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
                 botConfigs.add(binder.bind(configKey, Bindable.of(BotConfig.class)).get());
             }
         }
-        if (botConfigs.isEmpty()) {
-            throw new BotException("配置不存在");
+        if (botConfigs != null && !botConfigs.isEmpty()) {
+            BotNetworkFactory.initBotNetwork(botConfigs, bots, botDispatcher);
         }
-        BotDispatcher botDispatcher = BotFactory.getBeanByClass(BotDispatcher.class);
-        if (botDispatcher == null) {
-            throw new BotException("BotDispatcher初始化失败");
-        }
-        BotNetworkFactory.initBotNetwork(botConfigs, bots, botDispatcher);
+
     }
 
     public static void addBot(BotConfig botConfig) {

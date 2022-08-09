@@ -32,6 +32,11 @@ public class SendGroupMsg extends BaseApi {
     }
 
     @Override
+    public boolean needSleep() {
+        return true;
+    }
+
+    @Override
     public String getAction() {
         return "send_group_msg";
     }

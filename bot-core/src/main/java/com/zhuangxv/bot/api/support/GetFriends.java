@@ -22,8 +22,4 @@ public class GetFriends extends BaseApi {
         return "";
     }
 
-    @Override
-    public boolean needSleep() {
-        return false;
-    }
 }

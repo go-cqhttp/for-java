@@ -20,7 +20,7 @@ public abstract class BaseApi {
     public abstract Object getParams();
 
     public boolean needSleep() {
-        return true;
+        return false;
     }
 
     private String echo = null;

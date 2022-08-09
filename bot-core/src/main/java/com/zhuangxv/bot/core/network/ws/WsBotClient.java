@@ -49,20 +49,20 @@ public class WsBotClient implements BotClient {
     public ApiResult invokeApi(BaseApi baseApi, Bot bot) {
         this.lock.lock();
         try {
-            if (baseApi.needSleep() && System.currentTimeMillis() - lastInvokeTime < 3000) {
+            if (baseApi.needSleep() && System.currentTimeMillis() - lastInvokeTime < 1500) {
                 try {
-                    Thread.sleep(System.currentTimeMillis() - lastInvokeTime);
+                    Thread.sleep(1500 - (System.currentTimeMillis() - lastInvokeTime));
                 } catch (InterruptedException e) {
                     throw new BotException(String.format("[%s]调用api出错: %s", bot.getBotName(), e.getMessage()));
                 }
                 channel.writeAndFlush(new TextWebSocketFrame(baseApi.buildJson()));
-                lastInvokeTime = System.currentTimeMillis();
             } else {
                 channel.writeAndFlush(new TextWebSocketFrame(baseApi.buildJson()));
             }
             CompletableFuture<ApiResult> completableFuture = new CompletableFuture<>();
             completableFutureMap.put(baseApi.getEcho(), completableFuture);
             ApiResult apiResult = getApiResult(baseApi.getEcho());
+            lastInvokeTime = System.currentTimeMillis();
             if (apiResult == null || !"ok".equals(apiResult.getStatus())) {
                 throw new BotException(String.format("[%s]调用api出错: %s", bot.getBotName(), apiResult));
             }

@@ -34,6 +34,11 @@ public class SendTempMsg extends BaseApi {
     }
 
     @Override
+    public boolean needSleep() {
+        return true;
+    }
+
+    @Override
     public String getAction() {
         return "send_private_msg";
     }
