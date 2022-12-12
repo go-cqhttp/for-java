@@ -1,8 +1,8 @@
-package com.zhuangxv.bot.core.framework;
+package com.zhuangxv.bot.core.component;
 
 /**
  * @author xiaoxu
- * @date 2020/10/14
+ * @since 2020/10/14
  **/
 public interface IdGenerator {
 

@@ -9,8 +9,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 @Slf4j
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class HeartbeatEventHandler implements EventHandler {
 
     @Override
@@ -18,7 +22,7 @@ public class HeartbeatEventHandler implements EventHandler {
         if (!HeartbeatEvent.isSupport(jsonObject)) {
             return;
         }
-        bot.getBotClient().getChannel().writeAndFlush(new PingWebSocketFrame());
+        bot.getBotClient().heartbeat();
         HeartbeatEvent heartbeatEvent = jsonObject.toJavaObject(HeartbeatEvent.class);
         log.debug("heartbeat-event: " + heartbeatEvent);
     }

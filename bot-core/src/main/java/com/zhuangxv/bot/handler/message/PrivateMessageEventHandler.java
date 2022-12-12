@@ -5,7 +5,7 @@ import com.zhuangxv.bot.annotation.FriendMessageHandler;
 import com.zhuangxv.bot.annotation.TempMessageHandler;
 import com.zhuangxv.bot.core.TempFriend;
 import com.zhuangxv.bot.core.Bot;
-import com.zhuangxv.bot.core.BotFactory;
+import com.zhuangxv.bot.core.component.BotFactory;
 import com.zhuangxv.bot.event.message.PrivateMessageEvent;
 import com.zhuangxv.bot.handler.EventHandler;
 import com.zhuangxv.bot.message.CacheMessage;
@@ -17,6 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 @Slf4j
 public class PrivateMessageEventHandler implements EventHandler {
     @Override
@@ -41,6 +45,9 @@ public class PrivateMessageEventHandler implements EventHandler {
                     return false;
                 }
                 TempMessageHandler tempMessageHandler = handlerMethod.getMethod().getAnnotation(TempMessageHandler.class);
+                if (tempMessageHandler.bot() != 0 && tempMessageHandler.bot() != privateMessageEvent.getSelfId()) {
+                    return false;
+                }
                 if (tempMessageHandler.senderIds().length > 0 && !ArrayUtils.contain(tempMessageHandler.senderIds(), privateMessageEvent.getUserId())) {
                     return false;
                 }
@@ -55,6 +62,9 @@ public class PrivateMessageEventHandler implements EventHandler {
                     return false;
                 }
                 FriendMessageHandler friendMessageHandler = handlerMethod.getMethod().getAnnotation(FriendMessageHandler.class);
+                if (friendMessageHandler.bot() != 0 && friendMessageHandler.bot() != privateMessageEvent.getSelfId()) {
+                    return false;
+                }
                 if (friendMessageHandler.senderIds().length > 0 && !ArrayUtils.contain(friendMessageHandler.senderIds(), privateMessageEvent.getUserId())) {
                     return false;
                 }

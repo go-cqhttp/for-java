@@ -4,12 +4,17 @@ import java.lang.annotation.*;
 
 /**
  * @author xiaoxu
- * @date 2020-08-07 16:00
+ * @since 2020-08-07 16:00
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface TempMessageHandler {
+
+    /**
+     * 限制bot 参数为bot qq  0为不限制
+     */
+    long bot() default 0;
 
     /**
      * 匹配正则

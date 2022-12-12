@@ -2,9 +2,8 @@ package com.zhuangxv.bot.handler.message;
 
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.annotation.GroupRecallHandler;
-import com.zhuangxv.bot.core.Group;
 import com.zhuangxv.bot.core.Bot;
-import com.zhuangxv.bot.core.BotFactory;
+import com.zhuangxv.bot.core.component.BotFactory;
 import com.zhuangxv.bot.event.message.GroupRecallEvent;
 import com.zhuangxv.bot.handler.EventHandler;
 import com.zhuangxv.bot.message.Message;
@@ -16,8 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 @Slf4j
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class GroupRecallEventHandler implements EventHandler {
 
     @Override
@@ -32,6 +35,9 @@ public class GroupRecallEventHandler implements EventHandler {
                 return false;
             }
             GroupRecallHandler groupRecallHandler = handlerMethod.getMethod().getAnnotation(GroupRecallHandler.class);
+            if (groupRecallHandler.bot() != 0 && groupRecallHandler.bot() != groupRecallEvent.getSelfId()) {
+                return false;
+            }
             if (groupRecallHandler.groupIds().length > 0 && !ArrayUtils.contain(groupRecallHandler.groupIds(), groupRecallEvent.getGroupId())) {
                 return false;
             }

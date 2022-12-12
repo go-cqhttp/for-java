@@ -6,6 +6,10 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public class GetMemberInfo extends BaseApi {
 
     private final GetMemberInfo.Param param;
@@ -32,11 +36,6 @@ public class GetMemberInfo extends BaseApi {
     @Override
     public Object getParams() {
         return param;
-    }
-
-    @Override
-    public boolean needSleep() {
-        return false;
     }
 
     @Data

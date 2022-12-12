@@ -32,6 +32,11 @@ public class SendGroupForwardMsg extends BaseApi {
     }
 
     @Override
+    public boolean needSleep() {
+        return true;
+    }
+
+    @Override
     public String getAction() {
         return "send_group_forward_msg";
     }

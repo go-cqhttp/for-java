@@ -9,6 +9,10 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public class SendPrivateMsg extends BaseApi {
 
     private final SendPrivateMsg.Param param;
@@ -25,6 +29,11 @@ public class SendPrivateMsg extends BaseApi {
         this.param.setUserId(userId);
         this.param.setMessage(JSON.parseArray(messageChain.toMessageString()));
         this.param.setAutoEscape(autoEscape);
+    }
+
+    @Override
+    public boolean needSleep() {
+        return true;
     }
 
     @Override

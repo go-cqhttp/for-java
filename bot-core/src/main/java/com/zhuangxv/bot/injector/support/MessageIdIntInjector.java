@@ -6,6 +6,10 @@ import com.zhuangxv.bot.event.message.GroupRecallEvent;
 import com.zhuangxv.bot.event.message.MessageEvent;
 import com.zhuangxv.bot.injector.ObjectInjector;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public class MessageIdIntInjector implements ObjectInjector<Integer> {
     @Override
     public Class<Integer> getClassType() {
