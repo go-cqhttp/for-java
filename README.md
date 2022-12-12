@@ -28,8 +28,8 @@
 
 ```yml
 bot:
-  botName: #bot名字(保证唯一)
-  websocketUrl: #go-cqhttp配置中的正向websocket地址(如ws://127.0.0.1:6700)
+  type: #连接类型，可选：ws, ws-reverse,http(开发中)
+  url: #go-cqhttp的地址,要附带协议(如ws://127.0.0.1:6700)
   accessToken: #go-cqhttp配置中的access_token
 ```
 
