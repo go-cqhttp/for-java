@@ -66,7 +66,7 @@ bot:
 
 ---
 
-### @FriendMessageHander
+### @FriendMessageHandler
 > 收到好友私聊消息时执行该方法
 
 注解参数列表
