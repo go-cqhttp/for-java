@@ -79,25 +79,7 @@ public class WsHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
         Channel ch = ctx.channel();
-        if (!this.webSocketClientHandshaker.isHandshakeComplete() && msg instanceof FullHttpRequest) {
-            {
-                boolean isReturn = false;
-                Map<String, BotContext> beans = BotFactory.getBeansByClass(BotContext.class);
-                if (beans != null) {
-                    long qq;
-                    try {
-                        qq = Long.parseLong(((FullHttpRequest) msg).headers().get("X-Self-ID"));
-                    } catch (Exception ignore) {
-                        return;
-                    }
-                    for (BotContext botContext : beans.values()) {
-                        isReturn = !botContext.approve(qq, this.botConfig.getAccessToken());
-                    }
-                }
-                if (isReturn) {
-                    return;
-                }
-            }
+        if (!this.webSocketClientHandshaker.isHandshakeComplete() && msg instanceof FullHttpResponse) {
             try {
                 this.webSocketClientHandshaker.finishHandshake(ch, (FullHttpResponse) msg);
                 BotClient botClient = new WsBotClient(this.wsNetwork.getChannel());
