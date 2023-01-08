@@ -1,14 +1,18 @@
 package com.zhuangxv.bot.api;
 
 import com.alibaba.fastjson.JSON;
-import com.zhuangxv.bot.core.BotFactory;
-import com.zhuangxv.bot.core.framework.IdGenerator;
+import com.zhuangxv.bot.core.component.BotFactory;
+import com.zhuangxv.bot.core.component.IdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public abstract class BaseApi {
 
     public abstract String getAction();
@@ -16,7 +20,7 @@ public abstract class BaseApi {
     public abstract Object getParams();
 
     public boolean needSleep() {
-        return true;
+        return false;
     }
 
     private String echo = null;

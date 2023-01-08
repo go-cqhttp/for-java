@@ -4,6 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.message.support.*;
 import org.springframework.util.StringUtils;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public class MessageTypeHandle {
 
     public static Message getMessage(JSONObject jsonObject) {

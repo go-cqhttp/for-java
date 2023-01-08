@@ -1,9 +1,10 @@
-package com.zhuangxv.bot.core;
+package com.zhuangxv.bot.core.component;
 
 import com.zhuangxv.bot.annotation.*;
 import com.zhuangxv.bot.config.BotConfig;
 import com.zhuangxv.bot.config.PropertySourcesUtils;
-import com.zhuangxv.bot.core.framework.HandlerMethod;
+import com.zhuangxv.bot.core.Bot;
+import com.zhuangxv.bot.core.network.BotNetworkFactory;
 import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.exception.BotException;
 import com.zhuangxv.bot.injector.ObjectInjector;
@@ -24,15 +25,19 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 @Slf4j
 public class BotFactory implements ApplicationContextAware, DisposableBean {
 
-    private static final List<Bot> bots = new ArrayList<>();
+    private static final Map<Long, Bot> bots = new HashMap<>();
 
     private static ConfigurableEnvironment environment;
 
     private static ConfigurableApplicationContext applicationContext;
-    private static Map<String, List<HandlerMethod>> handlerMethodMap;
+    private static final List<HandlerMethod> handlerMethodList = new ArrayList<>();
     private static Map<String, Map<Class<?>, ObjectInjector<?>>> objectInjectorMap;
 
     @Override
@@ -55,7 +60,6 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
     @SuppressWarnings("all")
     public static void initHandlerMethod() {
         Map<String, Object> beans = BotFactory.getApplicationContext().getBeansOfType(Object.class);
-        handlerMethodMap = new HashMap<>();
         for (Object bean : beans.values()) {
             Class<?> beanClass = ClassUtils.getUserClass(bean);
             Set<Method> methodSet = Arrays.stream(beanClass.getMethods()).filter(method ->
@@ -63,7 +67,7 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
                             || method.isAnnotationPresent(TempMessageHandler.class)
                             || method.isAnnotationPresent(FriendMessageHandler.class)
                             || method.isAnnotationPresent(GroupRecallHandler.class)
-                            || method.isAnnotationPresent(GroupUserAddHandler.class)
+                            || method.isAnnotationPresent(MemberAddHandler.class)
             ).collect(Collectors.toSet());
             methodSet.forEach(method -> {
                 HandlerMethod handlerMethod = new HandlerMethod() {
@@ -73,8 +77,7 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
                         setObject(bean);
                     }
                 };
-                // TODO: 2021/2/21 改成多qq
-                handlerMethodMap.computeIfAbsent("bot", k -> new ArrayList<>()).add(handlerMethod);
+                handlerMethodList.add(handlerMethod);
             });
         }
         objectInjectorMap = new HashMap<>();
@@ -87,16 +90,18 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
                 }
             }
         }
-        log.info("初始化事件处理器完成.");
+        log.info("事件处理器初始化完成.");
     }
 
     public static void initBot() {
+        BotDispatcher botDispatcher = BotFactory.getBeanByClass(BotDispatcher.class);
+        if (botDispatcher == null) {
+            throw new BotException("BotDispatcher初始化失败");
+        }
         String configKey = "bot";
-        List<BotConfig> botConfigs;
-        if (PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey).size() == 0
-                && PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey + "[0]").size() == 0) {
-            throw new BotException("配置不存在");
-        } else {
+        List<BotConfig> botConfigs = null;
+        if (PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey).size() != 0
+                || PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey + "[0]").size() != 0) {
             Binder binder = Binder.get(BotFactory.environment);
             if (PropertySourcesUtils.getPrefixedProperties(BotFactory.environment.getPropertySources(), configKey + "[0]").size() > 0) {
                 botConfigs = binder.bind(configKey, Bindable.listOf(BotConfig.class)).get();
@@ -105,36 +110,44 @@ public class BotFactory implements ApplicationContextAware, DisposableBean {
                 botConfigs.add(binder.bind(configKey, Bindable.of(BotConfig.class)).get());
             }
         }
-        if (botConfigs.isEmpty()) {
-            throw new BotException("配置不存在");
+        if (botConfigs != null && !botConfigs.isEmpty()) {
+            BotNetworkFactory.initBotNetwork(botConfigs, bots, botDispatcher);
         }
+
+    }
+
+    public static void addBot(BotConfig botConfig) {
+        List<BotConfig> botConfigs = new ArrayList<>();
+        botConfigs.add(botConfig);
         BotDispatcher botDispatcher = BotFactory.getBeanByClass(BotDispatcher.class);
         if (botDispatcher == null) {
             throw new BotException("BotDispatcher初始化失败");
         }
-        for (BotConfig botConfig : botConfigs) {
-            BotFactory.bots.add(new Bot(botConfig, botDispatcher));
-        }
-        for (Bot bot : BotFactory.bots) {
-            bot.getBotClient().connection();
-        }
+        BotNetworkFactory.initBotNetwork(botConfigs, bots, botDispatcher);
     }
 
-    public static List<Bot> getBots() {
+    public static void addBot(List<BotConfig> botConfigs) {
+        BotDispatcher botDispatcher = BotFactory.getBeanByClass(BotDispatcher.class);
+        if (botDispatcher == null) {
+            throw new BotException("BotDispatcher初始化失败");
+        }
+        BotNetworkFactory.initBotNetwork(botConfigs, bots, botDispatcher);
+    }
+
+    public static Map<Long, Bot> getBots() {
         return bots;
     }
 
-    public static Set<HandlerMethod> getHandlerMethodListByAnnotation(String botName, Predicate<? super HandlerMethod> predicate) {
-        List<HandlerMethod> handlerMethods = handlerMethodMap.get(botName);
-        if (handlerMethods == null || handlerMethods.isEmpty()) {
+    public static Set<HandlerMethod> getHandlerMethodListByAnnotation(Predicate<? super HandlerMethod> predicate) {
+        if (handlerMethodList.isEmpty()) {
             return new HashSet<>();
         }
-        return handlerMethods.stream().filter(predicate).collect(Collectors.toSet());
+        return handlerMethodList.stream().filter(predicate).collect(Collectors.toSet());
     }
 
     public static List<Object> handleMethod(Bot bot, BaseEvent event, Predicate<? super HandlerMethod> predicate, String objectInjectorType) {
         List<Object> resultList = new ArrayList<>();
-        Set<HandlerMethod> handlerMethodSet = getHandlerMethodListByAnnotation("bot", predicate);
+        Set<HandlerMethod> handlerMethodSet = getHandlerMethodListByAnnotation(predicate);
         for (HandlerMethod handlerMethod : handlerMethodSet) {
             Class<?>[] parameterTypes = handlerMethod.getMethod().getParameterTypes();
             Object[] objects = new Object[parameterTypes.length];

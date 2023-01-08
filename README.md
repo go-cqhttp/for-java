@@ -28,8 +28,8 @@
 
 ```yml
 bot:
-  botName: #bot名字(保证唯一)
-  websocketUrl: #go-cqhttp配置中的正向websocket地址(如ws://127.0.0.1:6700)
+  type: #连接类型，可选：ws, ws-reverse,http(开发中)
+  url: #go-cqhttp的地址,要附带协议(如ws://127.0.0.1:6700)
   accessToken: #go-cqhttp配置中的access_token
 ```
 
@@ -66,7 +66,7 @@ bot:
 
 ---
 
-### @FriendMessageHander
+### @FriendMessageHandler
 > 收到好友私聊消息时执行该方法
 
 注解参数列表
@@ -135,4 +135,4 @@ bot:
 可注入到方法中的属性
 
 * Group 被撤回的消息所在的群实例
-* UserAddMessage 包含操作管理员以及入群用户的id
+* UserAddMessage 包含操作管理员以及入群用户的id**

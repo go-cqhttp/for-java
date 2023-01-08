@@ -3,7 +3,7 @@ package com.zhuangxv.bot.handler.message;
 import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.annotation.GroupMessageHandler;
 import com.zhuangxv.bot.core.Bot;
-import com.zhuangxv.bot.core.BotFactory;
+import com.zhuangxv.bot.core.component.BotFactory;
 import com.zhuangxv.bot.event.message.GroupMessageEvent;
 import com.zhuangxv.bot.handler.EventHandler;
 import com.zhuangxv.bot.message.CacheMessage;
@@ -17,11 +17,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 @Slf4j
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class GroupMessageEventHandler implements EventHandler {
 
     @Override
@@ -44,9 +47,12 @@ public class GroupMessageEventHandler implements EventHandler {
                 return false;
             }
             GroupMessageHandler groupMessageHandler = handlerMethod.getMethod().getAnnotation(GroupMessageHandler.class);
-            if (groupMessageHandler.ignoreItself().equals(IgnoreItselfEnum.IGNORE_ITSELF) && "message_sent".equals(groupMessageEvent.getEventType())) {
+            if (groupMessageHandler.bot() != 0 && groupMessageHandler.bot() != groupMessageEvent.getSelfId()) {
                 return false;
-            } else if (groupMessageHandler.ignoreItself().equals(IgnoreItselfEnum.ONLY_ITSELF) && !"message_sent".equals(groupMessageEvent.getEventType())){
+            }
+            if (groupMessageHandler.ignoreItself().equals(IgnoreItselfEnum.IGNORE_ITSELF) && "message_sent".equals(groupMessageEvent.getPostType())) {
+                return false;
+            } else if (groupMessageHandler.ignoreItself().equals(IgnoreItselfEnum.ONLY_ITSELF) && !"message_sent".equals(groupMessageEvent.getPostType())){
                 return false;
             }
             if (groupMessageHandler.groupIds().length > 0 && !ArrayUtils.contain(groupMessageHandler.groupIds(), groupMessageEvent.getGroupId())) {

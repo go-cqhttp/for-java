@@ -7,6 +7,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
@@ -14,9 +18,6 @@ public class GroupMessageEvent extends MessageEvent {
 
     @JSONField(name = "sub_type")
     private String subType;
-
-    @JSONField(name = "self_id")
-    private Long selfId;
 
     @JSONField(name = "group_id")
     private Long groupId;

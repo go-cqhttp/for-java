@@ -1,14 +1,12 @@
 package com.zhuangxv.bot.scheduled;
 
 import com.zhuangxv.bot.core.Bot;
-import com.zhuangxv.bot.core.BotFactory;
 import com.zhuangxv.bot.core.Group;
+import com.zhuangxv.bot.core.component.BotFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author xiaoxu
@@ -29,8 +27,8 @@ public class FlushCacheScheduled {
 
 
     public synchronized void flushFriends() {
-        List<Bot> bots = BotFactory.getBots();
-        if (bots == null || bots.isEmpty()) {
+        Collection<Bot> bots = BotFactory.getBots().values();
+        if (bots.isEmpty()) {
             return;
         }
         for (Bot bot : bots) {
@@ -39,8 +37,8 @@ public class FlushCacheScheduled {
     }
 
     public synchronized void flushGroups() {
-        List<Bot> bots = BotFactory.getBots();
-        if (bots == null || bots.isEmpty()) {
+        Collection<Bot> bots = BotFactory.getBots().values();
+        if (bots.isEmpty()) {
             return;
         }
         for (Bot bot : bots) {

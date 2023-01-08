@@ -1,6 +1,6 @@
 package com.zhuangxv.bot.support;
 
-import com.zhuangxv.bot.core.BotFactory;
+import com.zhuangxv.bot.core.component.BotFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
@@ -12,7 +12,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author xiaoxu
- * @date 2020-06-22 11:10
+ * @since 2020-06-22 11:10
  */
 @Slf4j
 public class BotAutoConfigRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {

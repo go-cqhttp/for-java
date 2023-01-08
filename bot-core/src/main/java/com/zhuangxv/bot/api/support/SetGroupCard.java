@@ -6,6 +6,10 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public class SetGroupCard extends BaseApi {
 
     private final SetGroupCard.Param param;

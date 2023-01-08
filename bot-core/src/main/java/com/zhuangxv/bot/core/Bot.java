@@ -5,6 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.zhuangxv.bot.api.ApiResult;
 import com.zhuangxv.bot.api.support.*;
 import com.zhuangxv.bot.config.BotConfig;
+import com.zhuangxv.bot.core.component.BotDispatcher;
+import com.zhuangxv.bot.core.network.BotClient;
+import com.zhuangxv.bot.core.network.ws.WsBotClient;
 import com.zhuangxv.bot.exception.BotException;
 import com.zhuangxv.bot.message.CacheMessage;
 import com.zhuangxv.bot.message.MessageChain;
@@ -30,17 +33,32 @@ public class Bot {
     private final Map<Long, Map<Long, Member>> groupMembers = new ConcurrentHashMap<>();
     private final Map<String, Map<Integer, CacheMessage>> cacheMessageChain = new HashMap<>();
     private final Lock cacheMessageChainLock = new ReentrantLock();
-    public final CompletableFuture<Long> completableFuture = new CompletableFuture<>();
+    private final CompletableFuture<Long> completableFuture = new CompletableFuture<>();
     private final BotConfig botConfig;
     private final BotClient botClient;
 
-    protected Bot(BotConfig botConfig, BotDispatcher botDispatcher) {
+    private long botId = 0;
+    private String botName;
+
+    public long getBotId() {
+        return botId;
+    }
+
+    public String getBotName() {
+        return botName;
+    }
+
+    public Bot(BotConfig botConfig, BotClient botClient) {
         this.botConfig = botConfig;
-        this.botClient = new BotClient(botConfig, botDispatcher, this);
+        this.botClient = botClient;
     }
 
     public BotClient getBotClient() {
         return this.botClient;
+    }
+
+    public CompletableFuture<Long> getCompletableFuture() {
+        return completableFuture;
     }
 
     public void pushGroupCacheMessageChain(Long groupId, Integer messageId, CacheMessage cacheMessage) {
@@ -104,9 +122,23 @@ public class Bot {
         }
     }
 
+    private JSONObject getObject(Object object) {
+        if (!(object instanceof JSONObject)) {
+            throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botName));
+        }
+        return (JSONObject) object;
+    }
+
+    private JSONArray getArray(Object object) {
+        if (!(object instanceof JSONArray)) {
+            throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botName));
+        }
+        return (JSONArray) object;
+    }
+
     public void flushFriends() {
-        log.info(String.format("[%s]正在刷新好友列表.", this.botConfig.getBotName()));
-        ApiResult apiResult = this.botClient.invokeApi(new GetFriends());
+        log.debug(String.format("[%s]正在刷新好友列表.", this.botName));
+        ApiResult apiResult = this.botClient.invokeApi(new GetFriends(), this);
         JSONArray resultArray = this.getArray(apiResult.getData());
         for (int i = 0; i < resultArray.size(); i++) {
             JSONObject resultObject = resultArray.getJSONObject(i);
@@ -115,12 +147,12 @@ public class Bot {
             String remark = resultObject.getString("remark");
             this.friends.put(userId, new Friend(userId, nickname, remark, this));
         }
-        log.info(String.format("[%s]刷新好友列表完成,共有好友%d个.", this.botConfig.getBotName(), this.friends.size()));
+        log.debug(String.format("[%s]刷新好友列表完成,共有好友%d个.", this.botName, this.friends.size()));
     }
 
     public Collection<Group> flushGroups() {
-        log.info(String.format("[%s]正在刷新群列表.", this.botConfig.getBotName()));
-        ApiResult apiResult = this.botClient.invokeApi(new GetGroups());
+        log.debug(String.format("[%s]正在刷新群列表.", this.botName));
+        ApiResult apiResult = this.botClient.invokeApi(new GetGroups(), this);
         JSONArray resultArray = this.getArray(apiResult.getData());
         for (int i = 0; i < resultArray.size(); i++) {
             JSONObject resultObject = resultArray.getJSONObject(i);
@@ -128,12 +160,12 @@ public class Bot {
             String groupName = resultObject.getString("group_name");
             this.groups.put(groupId, new Group(groupId, groupName, this));
         }
-        log.info(String.format("[%s]刷新群列表完成,共有群%d个.", this.botConfig.getBotName(), this.groups.size()));
+        log.debug(String.format("[%s]刷新群列表完成,共有群%d个.", this.botName, this.groups.size()));
         return this.groups.values();
     }
 
     public void flushGroupMembers(Group group) {
-        ApiResult apiResult = this.botClient.invokeApi(new GetGroupMembers(group.getGroupId()));
+        ApiResult apiResult = this.botClient.invokeApi(new GetGroupMembers(group.getGroupId()), this);
         JSONArray resultArray = this.getArray(apiResult.getData());
         Map<Long, Member> members = this.groupMembers.computeIfAbsent(group.getGroupId(), key -> new ConcurrentHashMap<>());
         for (int i = 0; i < resultArray.size(); i++) {
@@ -154,7 +186,7 @@ public class Bot {
             boolean cardChangeable = resultObject.getBoolean("card_changeable");
             members.put(userId, new Member(userId, group.getGroupId(), nickname, card, sex, age, area, joinTime, lastSentTime, level, role, unfriendly, title, titleExpireTime, cardChangeable, this));
         }
-        log.info(String.format("[%s]刷新群%s的成员列表完成,共有群成员%d个", this.botConfig.getBotName(), group.getGroupName(), members.size()));
+        log.debug(String.format("[%s]刷新群%s的成员列表完成,共有群成员%d个", this.botName, group.getGroupName(), members.size()));
     }
 
 
@@ -172,7 +204,7 @@ public class Bot {
             }
             Friend friend = this.friends.get(userId);
             if (friend == null) {
-                ApiResult apiResult = this.botClient.invokeApi(new GetFriends());
+                ApiResult apiResult = this.botClient.invokeApi(new GetFriends(), this);
                 JSONArray resultArray = this.getArray(apiResult.getData());
                 for (int i = 0; i < resultArray.size(); i++) {
                     JSONObject resultObject = resultArray.getJSONObject(i);
@@ -207,7 +239,7 @@ public class Bot {
             }
             Group group = this.groups.get(groupId);
             if (group == null) {
-                ApiResult apiResult = this.botClient.invokeApi(new GetGroup(groupId));
+                ApiResult apiResult = this.botClient.invokeApi(new GetGroup(groupId), this);
                 JSONObject resultObject = this.getObject(apiResult.getData());
                 String groupName = resultObject.getString("group_name");
                 group = new Group(groupId, groupName, this);
@@ -243,7 +275,7 @@ public class Bot {
             }
             Member member = groupMembers.get(userId);
             if (member == null) {
-                ApiResult apiResult = this.botClient.invokeApi(new GetMemberInfo(groupId, userId));
+                ApiResult apiResult = this.botClient.invokeApi(new GetMemberInfo(groupId, userId), this);
                 JSONObject resultObject = this.getObject(apiResult.getData());
                 String nickname = resultObject.getString("nickname");
                 String card = resultObject.getString("card");
@@ -283,65 +315,59 @@ public class Bot {
         }
     }
 
-    private JSONObject getObject(Object object) {
-        if (!(object instanceof JSONObject)) {
-            throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botConfig.getBotName()));
-        }
-        return (JSONObject) object;
-    }
-
-    private JSONArray getArray(Object object) {
-        if (!(object instanceof JSONArray)) {
-            throw new BotException(String.format("[%s]调用api失败：解析结果出错。", this.botConfig.getBotName()));
-        }
-        return (JSONArray) object;
-    }
-
     public int sendGroupMessage(long groupId, MessageChain messageChain) {
-        ApiResult apiResult = this.botClient.invokeApi(new SendGroupMsg(groupId, messageChain));
+        ApiResult apiResult = this.botClient.invokeApi(new SendGroupMsg(groupId, messageChain), this);
         return this.getObject(apiResult.getData()).getIntValue("message_id");
     }
 
     public int sendGroupForwardMessage(long groupId, List<ForwardNodeMessage> messageList) {
-        ApiResult apiResult = this.botClient.invokeApi(new SendGroupForwardMsg(groupId, messageList));
+        ApiResult apiResult = this.botClient.invokeApi(new SendGroupForwardMsg(groupId, messageList), this);
         return this.getObject(apiResult.getData()).getIntValue("message_id");
     }
 
     public int sendTempMessage(long userId, long groupId, MessageChain messageChain) {
-        ApiResult apiResult = this.botClient.invokeApi(new SendTempMsg(userId, groupId, messageChain));
+        ApiResult apiResult = this.botClient.invokeApi(new SendTempMsg(userId, groupId, messageChain), this);
         return this.getObject(apiResult.getData()).getIntValue("message_id");
     }
 
     public void groupBan(long groupId) {
-        this.botClient.invokeApi(new GroupBan(groupId, true));
+        this.botClient.invokeApi(new GroupBan(groupId, true), this);
     }
 
     public void groupPardon(long groupId) {
-        this.botClient.invokeApi(new GroupBan(groupId, false));
+        this.botClient.invokeApi(new GroupBan(groupId, false), this);
     }
 
     public void memberBan(long groupId, long userId, long duration) {
-        this.botClient.invokeApi(new Ban(groupId, userId, duration));
+        this.botClient.invokeApi(new Ban(groupId, userId, duration), this);
     }
 
     public void memberPardon(long groupId, long userId) {
-        this.botClient.invokeApi(new Ban(groupId, userId, 0));
+        this.botClient.invokeApi(new Ban(groupId, userId, 0), this);
     }
 
     public int sendPrivateMessage(long userId, MessageChain messageChain) {
-        ApiResult apiResult = this.botClient.invokeApi(new SendPrivateMsg(userId, messageChain));
+        ApiResult apiResult = this.botClient.invokeApi(new SendPrivateMsg(userId, messageChain), this);
         return this.getObject(apiResult.getData()).getIntValue("message_id");
     }
 
     public void deleteMsg(long messageId) {
-        this.botClient.invokeApi(new DeleteMsg(messageId));
+        this.botClient.invokeApi(new DeleteMsg(messageId), this);
     }
 
     public void setGroupCard(long groupId, long userId, String card) {
-        this.botClient.invokeApi(new SetGroupCard(groupId, userId, card));
+        this.botClient.invokeApi(new SetGroupCard(groupId, userId, card), this);
     }
 
     public void setGroupSpecialTitle(long userId, String specialTitle, Number duration, long groupId) {
-        this.botClient.invokeApi(new SetGroupSpecialTitle(userId, specialTitle, duration, groupId));
+        this.botClient.invokeApi(new SetGroupSpecialTitle(userId, specialTitle, duration, groupId), this);
     }
+
+    public void flushBotInfo() {
+        ApiResult apiResult = this.botClient.invokeApi(new GetLoginInfo(), this);
+        JSONObject jsonObject = this.getObject(apiResult.getData());
+        this.botId = jsonObject.getLongValue("user_id");
+        this.botName = jsonObject.getString("nickname");
+    }
+
 }

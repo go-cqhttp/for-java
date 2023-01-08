@@ -6,6 +6,10 @@ import com.zhuangxv.bot.event.BaseEvent;
 import com.zhuangxv.bot.event.message.PrivateMessageEvent;
 import com.zhuangxv.bot.injector.ObjectInjector;
 
+/**
+ * @author xiaoxu
+ * @since 2022-05-24 10:19
+ */
 public class TempFriendInjector implements ObjectInjector<TempFriend> {
     @Override
     public Class<TempFriend> getClassType() {
