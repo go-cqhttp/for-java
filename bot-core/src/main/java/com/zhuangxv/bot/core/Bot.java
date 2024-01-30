@@ -11,6 +11,7 @@ import com.zhuangxv.bot.core.network.ws.WsBotClient;
 import com.zhuangxv.bot.exception.BotException;
 import com.zhuangxv.bot.message.CacheMessage;
 import com.zhuangxv.bot.message.MessageChain;
+import com.zhuangxv.bot.message.MessageTypeHandle;
 import com.zhuangxv.bot.message.support.ForwardNodeMessage;
 import lombok.extern.slf4j.Slf4j;
 
@@ -368,6 +369,16 @@ public class Bot {
         JSONObject jsonObject = this.getObject(apiResult.getData());
         this.botId = jsonObject.getLongValue("user_id");
         this.botName = jsonObject.getString("nickname");
+    }
+
+    public MessageChain getMessage(int messageId) {
+        ApiResult apiResult = this.botClient.invokeApi(new GetMessage(messageId), this);
+        JSONArray jsonArray = this.getObject(apiResult.getData()).getJSONArray("message");
+        MessageChain messageChain = new MessageChain();
+        for (int i = 0; i < jsonArray.size(); i++) {
+            messageChain.add(MessageTypeHandle.getMessage(jsonArray.getJSONObject(i)));
+        }
+        return messageChain;
     }
 
 }
