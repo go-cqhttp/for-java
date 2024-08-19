@@ -74,6 +74,7 @@ public class Bot {
     private void pushCacheMessageChain(String prefix, Long id, Integer messageId, CacheMessage cacheMessage) {
         this.cacheMessageChainLock.lock();
         try {
+            LinkedHashMap<Object, Object> objectObjectLinkedHashMap = new LinkedHashMap<>();
             Map<Integer, CacheMessage> messageChainMap = this.cacheMessageChain.computeIfAbsent(prefix + id, key -> new LinkedHashMap<>());
             messageChainMap.put(messageId, cacheMessage);
         } finally {
@@ -369,6 +370,13 @@ public class Bot {
         JSONObject jsonObject = this.getObject(apiResult.getData());
         this.botId = jsonObject.getLongValue("user_id");
         this.botName = jsonObject.getString("nickname");
+
+        Map<String, String> cache = new LinkedHashMap<String, String>() {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry eldest) {
+                return this.size() > 10;
+            }
+        };
     }
 
     public MessageChain getMessage(int messageId) {
