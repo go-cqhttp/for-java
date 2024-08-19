@@ -10,6 +10,7 @@
     <version>1.0.0</version>
     <modules>
         <module>bot-core</module>
+        <module>test</module>
     </modules>
 
     <properties>
